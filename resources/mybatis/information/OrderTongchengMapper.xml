@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="OrderTongchengMapper">
+	
+	<!-- 查询列表分页  -->
+	<select id="queryOrderTongchenglistPage" parameterType="page" resultType="pd">
+			select 
+				t1.order_tongcheng_id,
+				t1.orderTime,
+				t1.departurePlace,
+				t1.destination,
+				t1.mileage,
+				t1.radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t2.phone,
+				t2.userName,
+				t3.userName AS userNamesiji,
+				t3.phone AS phonesiji,
+				t3.carType,
+				t3.carColor,
+				t3.carNumber
+			from tb_order_tongcheng t1 
+				LEFT JOIN  tb_user_kehu t2  on t1.user_kehu_fid = t2.user_kehu_id  
+				LEFT JOIN  tb_user_siji t3  on t1.user_siji_fid = t3.user_siji_id 
+			<where>
+			 	<if test="pd.searchName!=null and pd.searchName!=''">
+			 		t1.userName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+			 	</if>
+		 	</where>
+			order by t1.orderTime desc
+	</select>
+	
+	<!-- 执行新增 -->
+	<insert id="InsertOrderTongcheng" parameterType="pd">
+		insert into
+		tb_order_tongcheng
+		(
+				order_tongcheng_id,
+				orderTime,
+				destination,
+				departurePlace,
+				mileage,
+				radeAmount,
+				kehu_user_fid,
+				user_siji_fid
+		)
+		values
+		(
+				#{order_tongcheng_id},
+				#{orderTime},
+				#{destination},
+				#{departurePlace},
+				#{mileage},
+				#{radeAmount},
+				#{kehu_user_fid},
+				#{user_siji_fid}
+		)
+	</insert>
+	
+	<!-- 执行修改 -->
+	<update id="UpdateOrderTongcheng" parameterType="pd">
+		update  tb_order_tongcheng
+			set 
+				order_tongcheng_id = #{order_tongcheng_id},
+				orderTime = #{orderTime},
+				destination = #{destination},
+				departurePlace = #{departurePlace},
+				mileage = #{mileage},
+				radeAmount = #{radeAmount},
+				kehu_user_fid = #{kehu_user_fid},
+				user_siji_fid = #{user_siji_fid}
+			where 
+				order_tongcheng_id = #{order_tongcheng_id}
+	</update>
+	
+	<!-- 根据ID读取一条数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+			order_tongcheng_id,	
+			orderTime,	
+			destination,	
+			departurePlace,
+			mileage,
+			radeAmount,
+			kehu_user_fid,
+			user_siji_fid
+		from 
+			tb_order_tongcheng
+		where 
+			order_tongcheng_id = #{order_tongcheng_id}
+	</select>
+	
+	<!-- 执行删除 -->
+	<delete id="del" parameterType="pd">
+		delete from tb_order_tongcheng
+		where 
+			order_tongcheng_id = #{order_tongcheng_id}
+	</delete>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from tb_order_tongcheng
+		where 
+			order_tongcheng_id in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 根据条件查询一条记录，判断是否存在 -->
+	<select id="getBySuigongName" parameterType="pd" resultType="pd">
+		select
+			*
+		from order_tongcheng_id 
+			where suigong_name=#{suigong_name}
+	</select>
+	
+</mapper>
+

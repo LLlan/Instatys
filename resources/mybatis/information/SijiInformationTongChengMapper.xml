@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SijiInformationTongChengMapper">
+	
+	<!-- 查询列表分页  -->
+	<select id="queryInformationTongChengPage" parameterType="pd" resultType="pd">
+			select 
+				t1.information_tongcheng_id,
+				t1.departurePlace,
+				t1.destination,
+				t1.user_kehu_fid,
+				t1.latitude_longitude_start,
+				t1.latitude_longitude_end,
+				t1.create_time
+			from 
+				tb_information_tongcheng t1
+			WHERE 
+				t1.hujiao_status = '0' AND to_days(t1.create_time) = to_days(now())
+		 	order by t1.create_time desc							   
+	</select>
+	
+	<!-- 执行新增 -->
+	<insert id="InsertOrderTongcheng" parameterType="pd">
+		insert into
+		tb_order_tongcheng
+		(
+				order_tongcheng_id,
+				orderTime,
+				destination,
+				departurePlace,
+				mileage,
+				radeAmount,
+				kehu_user_fid,
+				user_siji_fid
+		)
+		values
+		(
+				#{order_tongcheng_id},
+				#{orderTime},
+				#{destination},
+				#{departurePlace},
+				#{mileage},
+				#{radeAmount},
+				#{kehu_user_fid},
+				#{user_siji_fid}
+		)
+	</insert>
+	
+	<!-- 执行修改 -->
+	<update id="UpdateOrderTongcheng" parameterType="pd">
+		update  tb_order_tongcheng
+			set 
+				order_tongcheng_id = #{order_tongcheng_id},
+				orderTime = #{orderTime},
+				destination = #{destination},
+				departurePlace = #{departurePlace},
+				mileage = #{mileage},
+				radeAmount = #{radeAmount},
+				kehu_user_fid = #{kehu_user_fid},
+				user_siji_fid = #{user_siji_fid}
+			where 
+				order_tongcheng_id = #{order_tongcheng_id}
+	</update>
+	
+	<!-- 已被抢单 -->
+	<update id="updateHujiaoStatus" parameterType="pd">
+		update  tb_information_tongcheng
+			set 
+				hujiao_status = '2'
+			where 
+				information_tongcheng_id = #{information_tongcheng_id}
+	</update>
+	
+	<!-- 根据ID查出该同城打车列表一条信息 -->
+	<select id="queryInformationTongChengByPhone" parameterType="pd" resultType="pd">
+		select 
+			departurePlace,	
+			destination,
+			user_kehu_fid,
+			hujiao_status,
+			about_Amount
+		from 
+			tb_information_tongcheng
+		where 
+			information_tongcheng_id = #{information_tongcheng_id}
+	</select>
+	
+	<!-- 根据ID读取一条数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+			order_tongcheng_id,	
+			orderTime,	
+			destination,	
+			departurePlace,
+			mileage,
+			radeAmount,
+			kehu_user_fid,
+			user_siji_fid
+		from 
+			tb_order_tongcheng
+		where 
+			order_tongcheng_id = #{order_tongcheng_id}
+	</select>
+	
+	<!--  -->
+	<select id="queryInformationTongCheng" parameterType="pd" resultType="pd">
+		select
+			*
+		from tb_information_tongcheng 
+	</select>
+	
+</mapper>
+

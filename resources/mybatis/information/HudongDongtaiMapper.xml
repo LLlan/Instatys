@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hudongDongtaiMapper">
+	<!-- 
+		添加动态信息
+	-->
+	<insert id="insertDtai" parameterType="pd">
+		insert into tb_hudong_dongtai(
+			hudong_dongtai_id,
+			categoryName,
+			fabuTime,
+			isTop,
+			content,
+			user_kehu_fid
+		)values(
+			#{hudong_dongtai_id},
+			#{categoryName},
+			#{fabuTime},
+			#{isTop},
+			#{content},
+			#{user_kehu_fid}
+		)
+	</insert>
+	<!-- 
+		添加动态的图片信息
+	-->
+	<insert id="insertImg" parameterType="pd">
+		insert into tb_hudong_img(
+			hudong_img_id,
+			imgPath,
+			hudong_dongtai_fid
+		)values(
+			#{hudong_img_id},
+			#{imgPath},
+			#{hudong_dongtai_fid}
+		)
+	</insert>
+	<!--  
+		根据主键ID,获取我们所需要的信息
+	-->
+	<select id="getDateById" parameterType="pd" resultType="pd">
+		SELECT
+			thd.zanNumber,
+			tpp.plNumber
+		FROM tb_hudong_dongtai thd
+		LEFT JOIN (
+			SELECT COUNT(*) plNumber,thp.hudong_dongtai_fid FROM tb_hudong_pinglun thp GROUP BY thp.hudong_dongtai_fid
+		) tpp ON tpp.hudong_dongtai_fid=thd.hudong_dongtai_id
+		WHERE 
+			thd.hudong_dongtai_id=#{hudong_dongtai_id}
+	</select>
+	<!--  
+		获取所有的动态信息(基本属性+评论数量+用户的头像+用户的昵称)
+	-->
+	<select id="getlistAll" parameterType="pd" resultType="pd">
+		SELECT
+			thd.hudong_dongtai_id,
+			thd.fabuTime,
+			thd.content,
+			thd.categoryName,
+			thd.isTop,
+			thd.user_kehu_fid,
+			thd.zanNumber,
+			tuk.headImg,
+			tuk.userName,
+			thm.imgPaths,
+			thp.plNumber
+		FROM tb_hudong_dongtai thd
+		LEFT JOIN tb_user_kehu tuk ON tuk.user_kehu_id=thd.user_kehu_fid
+		LEFT JOIN (
+			SELECT GROUP_CONCAT(thi.imgPath) imgPaths,thi.hudong_dongtai_fid
+			FROM tb_hudong_img thi
+			GROUP BY thi.hudong_dongtai_fid
+		) thm ON thm.hudong_dongtai_fid=thd.hudong_dongtai_id
+		LEFT JOIN (
+			SELECT 
+				COUNT(*) plNumber,
+				thp.hudong_dongtai_fid
+			FROM tb_hudong_pinglun thp 
+			GROUP BY thp.hudong_dongtai_fid
+		) thp ON thp.hudong_dongtai_fid=thd.hudong_dongtai_id
+		ORDER BY thd.fabuTime DESC
+	</select>
+	<!-- 
+		删除指定的信息(当我们删除动态的时候,会自动删除其
+		指定ID的动态表中的信息、发布动态时的图片信息、其下的所有评论信息以及评论下的所有回复信息。) 
+	-->
+	<delete id="delete" parameterType="pd">
+		DELETE
+			thd.*,thi.*,thp.*,thh.*
+		FROM tb_hudong_dongtai thd
+		LEFT JOIN tb_hudong_img thi ON thi.hudong_dongtai_fid=thd.hudong_dongtai_id
+		LEFT JOIN tb_hudong_pinglun thp ON thp.hudong_dongtai_fid=thd.hudong_dongtai_id
+		LEFT JOIN tb_hudong_huifu thh ON thh.hudong_pinglun_fid=thp.hudong_pinglun_id
+		WHERE
+			thd.hudong_dongtai_id=#{tagID}	
+	</delete>
+	<!--  
+		点赞，更新数据
+	-->
+	<update id="updateZan" parameterType="pd">
+		UPDATE tb_hudong_dongtai thd
+		SET
+			thd.zanNumber=#{zanNumber}
+		WHERE
+			thd.hudong_dongtai_id=#{hudong_dongtai_id}
+	</update>
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hudongPinglunMapper">
+	<!--  
+		添加信息
+	-->
+	<insert id="insert" parameterType="pd">
+		INSERT INTO tb_hudong_pinglun(
+			hudong_pinglun_id,
+			pinglunContent,
+			pinglunTime,
+			hudong_dongtai_fid,
+			user_kehu_fid
+		)VALUES(
+			#{hudong_pinglun_id},
+			#{pinglunContent},
+			#{pinglunTime},
+			#{hudong_dongtai_fid},
+			#{user_kehu_fid}
+		)
+	</insert>
+	<!--  
+		根据ID获取指定信息
+	-->
+	<select id="getDateById" parameterType="pd" resultType="pd">
+		SELECT
+			thp.hudong_pinglun_id,
+			thp.pinglunContent,
+			thp.pinglunTime,
+			thp.zanNumber,
+			thf.hfNumber,
+			tuk.headImg,
+			tuk.userName
+		FROM tb_hudong_pinglun thp
+		LEFT JOIN tb_user_kehu tuk ON tuk.user_kehu_id=thp.user_kehu_fid
+		LEFT JOIN (
+			SELECT
+				COUNT(*) hfNumber,
+				thh.hudong_pinglun_fid
+			FROM tb_hudong_huifu thh 
+			GROUP BY thh.hudong_pinglun_fid
+		) thf ON thf.hudong_pinglun_fid=thp.hudong_pinglun_id
+		WHERE
+			thp.hudong_pinglun_id=#{tagID}
+	</select>
+	<!--  
+		获取指定动态下的所有评论
+	-->
+	<select id="getListByfid" parameterType="pd" resultType="pd">
+		SELECT
+			thp.hudong_pinglun_id,
+			thp.pinglunContent,
+			thp.pinglunTime,
+			thp.zanNumber,
+			thk.headImg,
+			thk.userName,
+			thh.hfNumber
+		FROM tb_hudong_pinglun thp
+		LEFT JOIN tb_user_kehu thk ON thk.user_kehu_id=thp.user_kehu_fid
+		LEFT JOIN (
+			SELECT 
+				COUNT(*) hfNumber,
+				hudong_pinglun_fid 
+			FROM tb_hudong_huifu 
+			GROUP BY hudong_pinglun_fid
+		) thh ON thh.hudong_pinglun_fid=thp.hudong_pinglun_id
+		WHERE
+			thp.hudong_dongtai_fid=#{tagID}
+	</select>
+</mapper>

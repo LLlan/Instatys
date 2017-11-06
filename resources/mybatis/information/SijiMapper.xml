@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SijiMapper">
+	
+	<!-- 司机用户管理列表  -->
+	<select id="SijiUserlistPage" parameterType="page" resultType="pd" useCache="false">
+			select 
+				t1.user_siji_id,
+				t1.userName,
+				t1.phone,
+				t1.carType,
+				t1.carColor,
+				t1.carNumber,
+				t1.realName,
+				t1.identityCard,
+				t1.identityFrontImg,
+				t1.identityReverseImg,
+				t1.drivingLicenceImg,
+				t1.carIdentityImg,
+				t1.authenticationTime,
+				t1.authenticationState,
+				t1.submitTime
+			from tb_user_siji t1 
+			<where>
+			 	<if test="pd.searchName!=null and pd.searchName!=''">
+			 		t1.userName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+			 	</if>
+			 	<if test="pd.selectName!=null and pd.selectName!=''">
+			 		and t1.authenticationState=#{pd.selectName}
+			 	</if>
+		 	</where>
+			order by t1.submitTime desc
+	</select>
+	
+	<!-- 审核不通过  -->
+	 <update id="syscheckedNo" parameterType="pd">
+		update tb_user_siji
+			set
+				authenticationState=#{authenticationState},
+				authenticationTime = NOW()
+			where user_siji_id=#{tagID}
+	</update>
+	
+	<!-- 审核通过  -->
+ 	<update id="syscheckedYes" parameterType="pd">
+		update tb_user_siji
+			set
+				authenticationState=#{authenticationState},
+				authenticationTime = NOW()
+			where user_siji_id=#{tagID}
+	</update>
+	
+	<!--批量审核不通过-->
+	 <update id="syscheckedNoAll" parameterType="pd">
+		update tb_user_siji
+			set
+				authenticationState="0"
+			where user_siji_id in
+			<foreach collection="array" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</update>
+	
+	<!-- 批量审核通过  -->
+	<update id="syscheckedYesAll" parameterType="pd">
+		update tb_user_siji
+			set
+				authenticationState="1"
+			where user_siji_id in
+			<foreach collection="array" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</update>
+	
+	<!-- ====================开始实现司机端接口====================== -->
+	
+		<!-- 获取司机端所有的个人资料信息 -->
+	<select id="querySijidGeRZL" parameterType="pd" resultType="pd">
+			select 
+				t1.user_siji_id,
+				t1.userName,
+				t1.phone,
+				t1.headImg,
+				t1.Amount,
+				t1.Incometoday,
+				t1.totalassets,
+				IFNULL(t1.carColor,'')carColor,
+				IFNULL(t1.realName,'')realName,
+				IFNULL(t1.carNumber,'')carNumber,
+				IFNULL(t1.carType,'')carType,
+				IFNULL(t1.city,'')city,
+				IFNULL(t1.identityCard,'')identityCard,
+				IFNULL(t1.authenticationState,'')authenticationState,
+				IFNULL(t1.payPassword,'')payPassword,
+				IFNULL(t1.identityFrontImg,'')identityFrontImg,
+				IFNULL(t1.identityReverseImg,'')identityReverseImg,
+				IFNULL(t1.drivingLicenceImg,'')drivingLicenceImg,
+				IFNULL(t1.carIdentityImg,'')carIdentityImg,
+				t1.tixianstatus,
+				t1.RegistrationID
+			from tb_user_siji t1 
+			where t1.phone = #{phone}
+	</select>
+	
+	<!-- 查询电话号码是否重复，即该用户是否注册过 -->
+	<select id="findByPhone" parameterType="pd" resultType="pd">
+		select * from tb_user_siji  
+		where  phone = #{phone}
+	</select>
+	
+	<!-- 根据backCode获取缓存信息 -->
+	<select id="getCacheInfo" parameterType="pd" resultType="CacheUserSiji">
+		select 
+			phone,
+			backCode,
+			user_siji_fid
+		 from tb_cache_user_siji 
+		where backCode = #{backCode}
+	</select>
+	
+	<!-- 根据登录成功后的返回码 BackCode去查询缓存信息 -->		
+	<select id="getDataByBackCode" parameterType="pd" resultType="pd">
+		SELECT
+			phone,
+			backCode,
+			user_siji_fid
+		FROM tb_cache_user_siji
+		WHERE
+			backCode=#{backCode}
+	</select>
+	
+	
+	<!-- 执行司机用户注册信息 -->
+	<insert id="SijiUserInsert" parameterType="pd">
+		insert into tb_user_siji(
+			user_siji_id,	
+			phone,	
+			loginPassword,
+			headImg,	
+			userName,	
+			carType,	
+			carColor,	
+			carNumber,	
+			realName,	
+			identityCard,	
+			identityFrontImg,	
+			identityReverseImg,	
+			drivingLicenceImg,	
+			carIdentityImg,	
+			authenticationTime,	
+			authenticationState,	
+			submitTime,
+			last_login_time,
+			ip,
+			status,
+			tixianstatus,
+			bz
+		) values (
+			#{user_siji_id},	
+			#{phone},	
+			#{loginPassword},	
+			#{headImg},	
+			#{userName},	
+			#{carType},	
+			#{carColor},
+			#{carNumber},
+			#{realName},	
+			#{identityCard},	
+			#{identityFrontImg},	
+			#{identityReverseImg},	
+			#{drivingLicenceImg},	
+			#{carIdentityImg},	
+			#{authenticationTime},	
+			#{authenticationState},	
+			#{submitTime},	
+			#{last_login_time},	
+			#{ip},	
+			#{status},	
+			#{tixianstatus},	
+			#{bz}
+		)
+	</insert>
+
+	<!-- 根据手机号码和密码判断登录，查到有该用户则登录成功 -->
+	<select id="getUserByNameAndPwd" parameterType="pd" resultType="pd">
+			select * from tb_user_siji  t1
+			where t1.phone = #{phone} and t1.loginPassword = #{loginPassword}
+	
+	</select>
+	
+	<!-- 每一次登录，都要修改这次登录时间为最后一次登录时间 -->
+	<update id="updateLastLogin" parameterType="pd">
+		update tb_user_siji set 
+		last_login_time = #{last_login_time} 
+		where phone = #{phone}
+	</update>
+	
+	<!-- 查该司机用户是否完善资料 -->
+	<select id="getCompleteDataByPhone" parameterType="pd" resultType="pd">
+		SELECT
+			t1.realName,
+			t1.identityCard,
+			t1.identityFrontImg,
+			t1.identityReverseImg,
+			t1.drivingLicenceImg,
+			t1.carIdentityImg
+			<!-- IFNULL(t1.realName,'')realName,
+			IFNULL(t1.identityCard,'')identityCard,
+			IFNULL(t1.identityFrontImg,'')identityFrontImg,
+			IFNULL(t1.identityReverseImg,'')identityReverseImg,
+			IFNULL(t1.drivingLicenceImg,'')drivingLicenceImg,
+			IFNULL(t1.carIdentityImg,'')carIdentityImg -->
+		FROM
+			tb_user_siji t1
+		WHERE
+			t1.phone = #{phone}
+	</select>
+	
+	<!-- 根据电话号码查出该用户的所有信息 -->
+	<select id="getUserSijiByPhone" parameterType="pd" resultType="pd">
+		select 
+			*
+		 from tb_user_siji t1 
+		where t1.phone =#{phone}
+	</select>
+	
+	<!-- 根据电话号码和密码获取缓存用户信息 -->
+	<select id="getCacheInfoByPhoneAndPwd" parameterType="pd" resultType="pd">
+			select 
+				t1.backCode,
+				t1.user_siji_fid
+		 from tb_cache_user_siji t1
+		 where t1.phone=#{phone}
+	</select>
+	
+	
+	<!-- 将用户信息存进缓存表中 -->
+	<insert id="putCacheInfo" parameterType="pd">
+		insert into 
+		tb_cache_user_siji(
+			cache_id,
+			phone,
+			passWord,
+			backCode,
+			user_siji_fid,
+			create_time
+		)values(
+			#{cache_id},
+			#{phone},
+			#{passWord},
+			#{backCode},
+			#{user_siji_fid},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 删除缓存信息  司机端app注销的用户 -->
+	<delete id="deleteCacheInfo" parameterType="pd">
+		delete from 
+			tb_cache_user_siji 
+				where backCode =#{backCode}
+	</delete>
+	
+	<!-- 修改密码 -->
+	<update id="updatePwd" parameterType="pd">
+		update tb_user_siji set
+		loginPassword =#{loginPassword}
+		where phone = #{phone}
+	</update>
+	
+	<!-- 司机app用户完善资料 -->
+	<update id="updateCompleteSiji" parameterType="pd">
+		update tb_user_siji set
+			userName = #{userName},
+			realName = #{realName},
+			identityCard = #{identityCard},
+			identityFrontImg = #{identityFrontImg},
+			identityReverseImg = #{identityReverseImg},
+			drivingLicenceImg = #{drivingLicenceImg},
+			authenticationState = #{authenticationState},
+			submitTime = #{submitTime},
+			carIdentityImg = #{carIdentityImg}
+		where 
+			phone = #{phone}
+	</update>
+	
+	<!-- 修改车辆信息 -->
+	<update id="updateVehicleInfo" parameterType="pd">
+		update tb_user_siji set
+			city = #{city},
+			carType = #{carType},
+			carColor = #{carColor},
+			authenticationState = #{authenticationState},
+			carNumber = #{carNumber}
+		where user_siji_id = #{user_siji_id}
+	</update>
+	
+	<!-- 修改头像图片 -->
+	<update id="updateAppHeadImage" parameterType="pd">
+		update tb_user_siji set
+			headImg = #{headImg}
+		where  phone = #{phone}
+	</update>
+	
+	<!-- 查询判断用户名是否已被占用 -->
+	<select id="queryByUserName" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM tb_user_siji
+		WHERE 
+			userName = #{userName}
+	</select>
+	
+		
+	<!-- 修改用户名 -->
+	<update id="updateAppNickName" parameterType="pd">
+		update tb_user_siji set
+			userName = #{userName}
+		where  phone = #{phone}
+	</update>
+	
+	<!-- 换绑新的手机号-->
+	<update id="updateUserphone" parameterType="pd">
+		UPDATE tb_user_siji
+			<set>
+				<if test="phone!='' and phone!=null">
+					phone=#{phone}
+				</if>
+			</set>
+		WHERE
+			user_siji_id=#{user_siji_id}
+	</update>
+	
+	<!-- 换绑新的手机号时更新缓存信息 -->
+	<update id="updateCacheUserSijiData" parameterType="pd">
+		UPDATE tb_cache_user_siji
+		SET
+			phone=#{phone}
+			<if test="user_siji_fid!='' and user_siji_fid!=null">
+			,user_siji_fid=#{user_siji_fid}
+			</if>
+			<if test="cache_id'' and cache_id">
+			,backCode=#{backCode}
+			</if>
+		WHERE
+			<if test="cache_id!='' and cache_id!=null">
+				cache_id=#{cache_id}
+			</if>
+			<if test="cache_id=='' and cache_id==null">
+				backCode=#{backCode}
+			</if>
+	</update>
+	
+	<insert id="saveAppNickName" parameterType="pd">
+		insert into tb_user_siji(
+			user_siji_id,
+			app_nickname,
+			app_phone
+		)values(
+			#{app_nk_id},
+			#{app_nickname},
+			#{app_phone}
+		)
+	</insert>
+	
+	<!-- 查询银行卡信息是否从复  -->
+	<select id="queryBankCardCardNumber" parameterType="pd" resultType="pd">
+			select 
+				t1.bank_card_id,
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber
+			from tb_bank_card t1 
+			where
+				t1.cardNumber = #{cardNumber}
+	</select>
+	
+	<!-- 查询银行卡id是否存在  -->
+	<select id="querybankCardId" parameterType="pd" resultType="pd">
+			select 
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber,
+				t1.status
+			from tb_bank_card t1 
+			where
+				t1.bank_card_id = #{bank_card_id}
+	</select>
+	
+	<!-- 添加银行卡信息确认 -->
+	<insert id="insertBankCard" parameterType="pd">
+		insert into tb_bank_card(
+			bank_card_id,
+			userName,
+			phone,
+			bankName,
+			cardNumber,
+			user_fid,
+			bz,
+			status,
+			create_time
+		)values(
+			#{bank_card_id},
+			#{userName},
+			#{phone},
+			#{bankName},
+			#{cardNumber},
+			#{user_fid},
+			#{bz},
+			#{status},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 提取现金 -->
+	<insert id="insertWithdrawCash" parameterType="pd">
+		insert into tb_bank_card_tixian(
+			bank_card_tixian_id,
+			serial_number,
+			tixian_type,
+			zhichu_amount,
+			Amount,
+			phone,
+			realName,
+			tixian_time,
+			bank_card_fid,
+			bankName,
+			cardNumber,
+			user_siji_fid,
+			bank_card_status
+		)values(
+			#{bank_card_tixian_id},
+			#{serial_number},
+			#{tixian_type},
+			#{zhichu_amount},
+			#{Amount},
+			#{phone},
+			#{realName},
+			#{tixian_time},
+			#{bank_card_fid},
+			#{bankName},
+			#{cardNumber},
+			#{user_siji_fid},
+			#{bank_card_status}
+		)
+	</insert>
+	
+	<!-- 存入计算出，提现后的剩下的余额  -->
+	<update id="setAccountAndAssets" parameterType="pd">
+		update tb_user_siji 
+			set
+				Amount = #{Amount},
+				totalassets = #{totalassets}
+		where 
+			user_siji_id = #{user_siji_fid}
+	</update>
+	
+	<!-- 我的账单明细列表   -->
+	<select id="queryBillingDetailsList" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_tixian_id,
+				t1.serial_number,
+				t1.tixian_type,
+				t1.zhichu_amount,
+				t1.tixian_time,
+				t1.bank_card_status,
+				t1.Amount AS AccountBalance
+			from tb_bank_card_tixian t1 
+			where
+				t1.user_siji_fid = #{user_siji_fid}
+			order by t1.tixian_time desc
+	</select>
+	
+	<!-- 我的明细账单详情   -->
+	<select id="queryBillDetails" parameterType="pd" resultType="pd">
+			select 
+				t1.bank_card_tixian_id,
+				t1.serial_number,
+				t1.tixian_type,
+				t1.zhichu_amount,
+				t1.tixian_time,
+				t2.Amount AS AccountBalance
+			from tb_bank_card_tixian t1 
+			LEFT JOIN tb_user_siji t2  ON  t1.user_siji_fid = t2.user_siji_id
+			where
+				t1.bank_card_tixian_id = #{bank_card_tixian_id}
+	</select>
+	
+	<!-- 提现说明   -->
+	<select id="queryCashDeclaration" parameterType="pd" resultType="pd">
+			select 
+				t1.cash_declaration
+			from tb_bank_card t1 
+			where
+				t1.bank_card_id = #{bank_card_id}  AND t1.user_fid = #{user_fid}
+	</select>
+	
+	
+	<!-- 我的银行卡管理列表   -->
+	<select id="queryBankCardList" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_id,
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber
+			from tb_bank_card t1 
+			where
+				t1.user_fid = #{user_fid}
+			order by t1.create_time desc
+	</select>
+	
+	<!-- 我的银行卡管理详情 -->
+	<select id="queryBankCard" parameterType="pd" resultType="pd">
+			select 
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber
+			from tb_bank_card t1 
+			where
+				t1.bank_card_id = #{bank_card_id}
+			order by t1.create_time desc
+	</select>
+
+	<!-- 银行卡解绑 -->
+	<delete id="unbundlingCardNumber" parameterType="pd">
+		delete from tb_bank_card where bank_card_id =#{bank_card_id}
+	</delete>
+
+	<!-- 设置提现密码 -->
+	<update id="updateTXPwd" parameterType="pd">
+		update tb_user_siji set
+		tixianstatus =1,
+		payPassword =#{payPassword}
+		where phone = #{phone}
+	</update>
+	
+	<!-- 设置成默认银行卡 -->
+	<update id="setdefault" parameterType="pd">
+		update tb_bank_card set
+		status = #{status}
+		where bank_card_id = #{bank_card_id}
+	</update>
+	
+	<!-- 正常的使用的 -->
+	<update id="setdefaultON" parameterType="pd">
+		update tb_bank_card set
+		status = '0'
+		where user_fid in
+		<foreach collection="array" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	<!-- 获取默认银行卡  -->
+	<select id="querydefaultBankCard" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_id,
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber
+			from tb_bank_card t1 
+			where
+				t1.user_fid = #{user_fid} AND t1.status = '1'
+	</select>
+	
+	<!-- 同城订单的今日总收入  -->
+	<select id="querytongchengIncomeToday" parameterType="pd" resultType="pd">
+			<!-- select 
+				IFNULL(sum(t1.radeAmount),0)sum,
+				count(*) AS count
+			from tb_order_tongcheng t1
+			WHERE  t1.user_siji_fid =#{user_siji_fid} AND to_days(t1.orderTime) = to_days(now())  AND order_tongcheng_status = 5 -->
+			select 
+				IFNULL(t2.sum,0)sum,
+				count(*) AS count
+			from 
+			(
+				SELECT
+						t3.Incometoday AS sum
+					FROM
+						tb_order_tongcheng t1
+					LEFT JOIN tb_user_siji t3 ON t1.user_siji_fid = t3.user_siji_id
+					WHERE  t1.user_siji_fid = #{user_siji_fid} 
+					AND to_days(t1.orderTime) = to_days(now()) 
+					AND order_tongcheng_status = 5
+			) t2
+	</select>
+	
+	<!-- 长途订单的今日总收入  -->
+	<select id="querychangtuIncomeToday" parameterType="pd" resultType="pd">
+			select 
+				IFNULL(sum(t1.changtu_radeAmount),0)sum,
+				count(*) AS count
+			from tb_order_changtu t1
+			WHERE  t1.user_siji_fid =#{user_siji_fid} AND to_days(t1.departureTime) = to_days(now()) AND order_changtu_status = 2
+	</select>
+	
+	<!-- 我的账户余额  -->
+	<select id="queryAccountbalance" parameterType="pd" resultType="pd">
+			select 
+				t1.Amount AS Amount,
+				t1.Incometoday AS Incometoday,
+				t1.totalassets AS totalassets
+			from tb_user_siji t1
+			WHERE  t1.user_siji_id =#{user_siji_fid}
+	</select>
+	
+	<!-- 我的钱包 -->
+	<update id="setMywallet" parameterType="pd">
+		update tb_user_siji 
+			set
+				Amount = #{Amount},
+				Incometoday = #{Incometoday},
+				totalassets = #{totalassets}
+		where 
+			user_siji_id = #{user_siji_fid}
+	</update>
+		
+	<!-- 司机端更新设备标识ID -->
+	<update id="updateSijiRegistrationID" parameterType="pd">
+		update tb_user_siji 
+		set 
+			RegistrationID = #{RegistrationID},
+			RegistrationType = #{RegistrationType}
+		where 
+			user_siji_id = #{user_siji_id}
+	</update>
+	
+		<!-- 获取司机端设备标识ID -->
+	<select id="querySijiRegistrationID" parameterType="pd" resultType="pd">
+			select 
+				t1.RegistrationID,
+				t1.RegistrationType
+			from tb_user_siji t1 
+			where t1.user_siji_id = #{user_siji_id}
+	</select>
+	
+</mapper>
+

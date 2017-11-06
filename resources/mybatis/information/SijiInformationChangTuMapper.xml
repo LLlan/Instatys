@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SijiInformationChangTuMapper">
+	
+	<!-- 后台司机长途发布信息列表 -->
+	<select id="InformationChangtulistPage" parameterType="page" resultType="pd">
+			select 
+				t1.information_changtu_id,
+				t1.userName,
+				t1.phone,
+				t1.departureTime,
+				t1.departurePlace,
+				t1.destination,
+				t1.carpoolFee,
+				t1.userNum,
+				t1.roleMark,
+				t1.departureCity,
+				t1.arrivalCity,
+				t1.releaseTime,
+				t1.user_fid
+			from 
+				tb_information_changtu t1 
+			<where>
+			 	<if test="pd.information_changtu_id!=null and pd.information_changtu_id!=''">
+			 		t1.information_changtu_id = #{information_changtu_id} 
+			 	</if>
+			 	<if test="pd.searchName!=null and pd.searchName!=''">
+			 		t1.userName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+			 	</if>
+		 	</where>
+		 	ORDER BY t1.releaseTime desc							   
+	</select>
+	
+	<!-- 查看司机发布的长途路线列表  -->
+	<select id="querySijiInformationChangTuPage" parameterType="pd" resultType="pd">
+			select 
+				t1.information_changtu_id,
+				t1.userName,
+				t1.phone,
+				t1.departureTime,
+				t1.departurePlace,
+				t1.destination,
+				t1.carpoolFee,
+				t1.userNum,
+				t1.roleMark,
+				t1.departureCity,
+				t1.arrivalCity,
+				t1.releaseTime,
+				t1.user_fid
+			from 
+				tb_information_changtu t1 
+			WHERE 
+				to_days(t1.departureTime) >= to_days(now())
+		 	ORDER BY t1.releaseTime desc
+	</select>
+	
+	<!-- 根据条件查看司机发布的长途路线列表 -->
+	<select id="querySijiInformationChangTuList" parameterType="page" resultType="pd">
+			select 
+				t1.information_changtu_id,
+				t1.userName,
+				t1.phone,
+				t1.departureTime,
+				t1.departurePlace,
+				t1.destination,
+				t1.carpoolFee,
+				t1.userNum,
+				t1.roleMark,
+				t1.departureCity,
+				t1.arrivalCity,
+				t1.releaseTime,
+				t1.user_fid
+			from 
+				tb_information_changtu t1 
+			where
+				t1.user_fid = #{user_fid}
+		 	ORDER BY t1.releaseTime desc							   
+	</select>
+	
+	<!-- 查看客户端发布的长途路线列表  -->
+	<select id="queryKehuInformationChangTuPage" parameterType="pd" resultType="pd">
+			select 
+				t1.information_kehu_changtu_id,
+				t1.userName,
+				t1.phone,
+				t1.departureTime,
+				t1.departurePlace,
+				t1.destination,
+				t1.carpoolFee,
+				t1.userNum,
+				t1.departureCity,
+				t1.arrivalCity,
+				t1.releaseTime,
+				t1.user_kehu_id
+			from 
+				tb_information_kehu_changtu t1 
+			WHERE 
+				t1.status = '0' AND to_days(t1.departureTime) >= to_days(now())
+		 	ORDER BY t1.releaseTime desc							   
+	</select>
+	
+	<!-- 司机发布长途路线信息 -->
+	<insert id="insertSijiInformationChangTu" parameterType="pd">
+		insert into
+		tb_information_changtu
+		(
+				information_changtu_id,
+				userName,
+				phone,
+				releaseTime,
+				departureTime,
+				departurePlace,
+				destination,
+				carpoolFee,
+				userNum,
+				roleMark,
+				departureCity,
+				arrivalCity,
+				user_fid
+		)
+		values
+		(
+				#{information_changtu_id},
+				#{userName},
+				#{phone},
+				#{releaseTime},
+				#{departureTime},
+				#{departurePlace},
+				#{destination},
+				#{carpoolFee},
+				#{userNum},
+				#{roleMark},
+				#{departureCity},
+				#{arrivalCity},
+				#{user_fid}
+		)
+	</insert>
+	
+	<!-- 客户端发布长途路线信息 -->
+	<insert id="insertkehuInformationChangTu" parameterType="pd">
+		insert into
+		tb_information_kehu_changtu
+		(
+				information_kehu_changtu_id,
+				userName,
+				phone,
+				releaseTime,
+				departureTime,
+				departurePlace,
+				destination,
+				carpoolFee,
+				userNum,
+				departureCity,
+				status,
+				arrivalCity,
+				user_kehu_id
+		)
+		values
+		(
+				#{information_kehu_changtu_id},
+				#{userName},
+				#{phone},
+				#{releaseTime},
+				#{departureTime},
+				#{departurePlace},
+				#{destination},
+				#{carpoolFee},
+				#{userNum},
+				#{departureCity},
+				#{status},
+				#{arrivalCity},
+				#{user_kehu_id}
+		)
+	</insert>
+	
+	<!--  根据ID查出该长途打车列表一条信息 -->
+	<select id="queryInformationChangTuID" parameterType="pd" resultType="pd">
+		select 
+				t1.releaseTime,
+				t1.departureTime,
+				t1.userName,
+				t1.phone,
+				t1.userNum,
+				t1.departurePlace,
+				t1.destination,
+				t1.carpoolFee,
+				<!-- t1.roleMark, -->
+				t1.departureCity,
+				t1.arrivalCity,
+				<!-- t1.information_changtu_id, -->
+				t1.user_fid
+		from 
+			tb_information_changtu t1
+		where 
+			information_changtu_id = #{information_changtu_id}
+	</select>
+	
+	<!--  根据ID查出该长途打车列表一条信息客户端  -->
+	<select id="queryInformationChangTuIDkuhu" parameterType="pd" resultType="pd">
+		select 
+				t1.releaseTime,
+				t1.departureTime,
+				t1.userName,
+				t1.phone,
+				t1.userNum,
+				t1.departurePlace,
+				t1.destination,
+				t1.user_kehu_id,
+				t1.status,
+				t1.carpoolFee,
+				t1.departureCity,
+				t1.arrivalCity
+				<!-- t1.roleMark,
+				t1.user_fid -->
+		from 
+			tb_information_kehu_changtu t1
+		where 
+			information_kehu_changtu_id = #{information_kehu_changtu_id}
+	</select>
+	
+	<!-- 修改已被抢单状态 -->
+	<update id="updateStatus" parameterType="pd">
+		update  tb_information_kehu_changtu
+			set 
+				Status = '1'
+			where 
+				information_kehu_changtu_id = #{information_kehu_changtu_id}
+	</update>
+	
+	<!-- 根据ID读取一条数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+			order_tongcheng_id,	
+			orderTime,	
+			destination,	
+			departurePlace,
+			mileage,
+			radeAmount,
+			kehu_user_fid,
+			user_siji_fid
+		from 
+			tb_order_tongcheng
+		where 
+			order_tongcheng_id = #{order_tongcheng_id}
+	</select>
+	
+	<!-- 执行删除 -->
+	<delete id="del" parameterType="pd">
+		delete from tb_order_tongcheng
+		where 
+			order_tongcheng_id = #{order_tongcheng_id}
+	</delete>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from tb_order_tongcheng
+		where 
+			order_tongcheng_id in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 根据条件查询一条记录，判断是否存在 -->
+	<select id="getBySuigongName" parameterType="pd" resultType="pd">
+		select
+			*
+		from order_tongcheng_id 
+			where suigong_name=#{suigong_name}
+	</select>
+	
+</mapper>
+

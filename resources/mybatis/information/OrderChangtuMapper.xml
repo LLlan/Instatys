@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="OrderChangtuMapper">
+	
+	<!-- 查询列表分页  -->
+	<select id="queryOrderChangtulistPage" parameterType="page" resultType="pd">
+			select 
+				t1.order_changtu_id,
+				t1.order_changtu_Time,
+				t1.changtu_departurePlace,
+				t1.changtu_destination,
+				t1.changtu_mileage,
+				t1.changtu_radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t1.information_changtu_fid,
+				t1.order_changtu_status,
+				t2.phone,
+				t2.userName,
+				t3.userName AS userNamesiji,
+				t3.phone AS phonesiji,
+				t3.carType,
+				t3.carColor,
+				t3.carNumber
+			from tb_order_changtu t1 
+				LEFT JOIN  tb_user_kehu t2  on t1.user_kehu_fid = t2.user_kehu_id  
+				LEFT JOIN  tb_user_siji t3  on t1.user_siji_fid = t3.user_siji_id 
+			<where>
+			 	<if test="pd.searchName!=null and pd.searchName!=''">
+			 		t1.userName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+			 	</if>
+		 	</where>
+			order by t1.order_changtu_Time desc
+	</select>
+	
+	<!-- 执行删除 -->
+	<delete id="del" parameterType="pd">
+		delete from tb_order_changtu where  order_changtu_id = #{order_changtu_id}
+	</delete>
+	
+	<!-- 获取司机端长途订单列表信息  -->
+	<select id="queryOrderChangtuList" parameterType="page" resultType="pd">
+			select 
+				t1.order_changtu_id,
+				t1.order_changtu_Time,
+				t1.changtu_departurePlace,
+				t1.changtu_destination,
+				t1.changtu_mileage,
+				t1.changtu_radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t1.information_changtu_fid AS information_kehu_changtu_id,
+				t1.order_changtu_status,
+				t3.phone AS phonekehu,
+				t3.userName AS userNamekuhu,
+				t1.userNum AS userNumkuhu,
+				t1.departureCity AS departureCity,
+				t1.arrivalCity AS arrivalCity,
+				t1.departureTime AS departureTime
+				<!-- t2.phone,
+				t2.userName,
+				t3.userName AS userNamesiji,
+				t3.carType,
+				t3.carColor,
+				t3.carNumber -->
+			from tb_order_changtu t1 
+				<!-- LEFT JOIN  tb_user_kehu t2  on t1.user_kehu_fid = t2.user_kehu_id  -->
+				LEFT JOIN  tb_user_kehu t3  on t1.user_kehu_fid = t3.user_kehu_id  
+				<!-- LEFT JOIN  tb_information_kehu_changtu t4  on t1.information_changtu_fid = t4.information_kehu_changtu_id -->  
+			where  
+				 t1.user_siji_fid = #{user_siji_fid}
+			order by t1.order_changtu_Time desc
+	</select>
+	
+	<!-- 获取客户端长途订单列表信息  -->
+	<select id="queryOrderKeHuChangtuList" parameterType="page" resultType="pd">
+			select 
+				t1.order_changtu_id,
+				t1.order_changtu_Time,
+				t1.changtu_departurePlace,
+				t1.changtu_destination,
+				t1.changtu_mileage,
+				t1.changtu_radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t1.information_changtu_fid,
+				t1.order_changtu_status,
+				t1.departureTime,
+				<!-- t1.userName AS userNamekuhu, -->
+				t1.userNum AS userNumkuhu,
+				t1.departureCity AS departureCity,
+				t1.arrivalCity AS arrivalCity,
+				<!-- t2.phone,
+				t2.userName, -->
+				t3.phone AS phonesiji,
+				t3.userName AS userNamesiji,
+				t3.carType,
+				t3.carColor,
+				t3.carNumber
+			from tb_order_changtu t1 
+				<!-- LEFT JOIN  tb_user_kehu t2  on t1.user_kehu_fid = t2.user_kehu_id  -->
+				LEFT JOIN  tb_user_siji t3  on t1.user_siji_fid = t3.user_siji_id  
+				<!-- LEFT JOIN  tb_information_changtu t4  on t1.information_changtu_fid = t4.information_changtu_id   -->
+			where  
+				 t1.user_kehu_fid = #{user_kehu_id}
+			order by t1.order_changtu_Time desc
+	</select>
+	
+	<!-- 司机端长途打车我要下单 -->
+	<insert id="insertOrderChangTu" parameterType="pd">
+		insert into
+		tb_order_changtu
+		(
+				order_changtu_id,
+				order_changtu_Time,
+				departureTime,
+				departureCity,
+				changtu_departurePlace,
+				arrivalCity,
+				changtu_destination,
+				changtu_mileage,
+				changtu_radeAmount,
+				information_changtu_fid,
+				order_changtu_status,
+				userNum,
+				user_kehu_fid,
+				user_siji_fid
+		)
+		values
+		(
+				#{order_changtu_id},
+				#{order_changtu_Time},
+				#{departureTime},
+				#{departureCity},
+				#{changtu_departurePlace},
+				#{arrivalCity},
+				#{changtu_destination},
+				#{changtu_mileage},
+				#{changtu_radeAmount},
+				#{information_changtu_fid},
+				#{order_changtu_status},
+				#{userNum},
+				#{user_kehu_fid},
+				#{user_siji_fid}
+		)
+	</insert>
+	
+	<!-- 封装查询返回列表结果 --> 
+	<resultMap type="pd" id="goodsMap">
+			<result column="phonekehu" property="phonekehu" />
+			<result column="userNamekuhu" property="userNamekuhu" />
+			<result column="userNumkuhu" property="userNumkuhu" />
+	</resultMap>
+	
+	<!-- 封装查询结果 --> 
+	<resultMap type="pd"  id="userMap">
+			<result column="changtu_departurePlace" property="changtu_departurePlace"/>
+			<result column="changtu_destination" property="changtu_destination"/>
+			<result column="departureTime" property="departureTime"/>
+			<result column="userNumsiji" property="userNumsiji"/>
+			<result column="changtu_radeAmount" property="changtu_radeAmount"/>
+			<result column="RegistrationID" property="RegistrationID"/>
+			<result column="RegistrationType" property="RegistrationType"/>
+			<collection property="goodsList" ofType="pd" javaType="ArrayList" resultMap="goodsMap" /><!-- 两种方式的不同之处在这里，自己分析就可以知道 -->
+	</resultMap>
+	    
+	<!-- 获取司机端长途订单详情 -->
+	<select id="queryOrderChangTu" parameterType="pd" resultMap="userMap">
+			SELECT
+				t1.order_changtu_id,
+				t1.order_changtu_Time,
+				t1.changtu_departurePlace,
+				t1.changtu_destination,
+				t1.changtu_mileage,
+				t1.changtu_radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t1.information_changtu_fid,
+				t1.order_changtu_status,
+				t2.departureTime,
+				t2.userNum AS userNumsiji,
+				t3.pinche_userNum AS userNumkuhu,
+				t4.userName AS userNamekuhu,
+				t4.phone AS phonekehu,
+				t5.RegistrationID,
+				t5.RegistrationType
+			FROM
+				tb_order_changtu t1
+			LEFT JOIN tb_information_changtu t2 ON t1.information_changtu_fid = t2.information_changtu_id
+			LEFT JOIN tb_information_tongcheng_pinche t3 ON t2.information_changtu_id = t3.information_changtu_fid
+			LEFT JOIN tb_user_kehu t4 ON  t3.user_kehu_fid = t4.user_kehu_id
+			LEFT JOIN tb_user_siji t5 ON t1.user_siji_fid = t5.user_siji_id
+			WHERE
+				t1.order_changtu_id = #{order_changtu_id}
+	</select>
+	
+	<!-- 获取客户端长途订单详情 -->
+	<select id="queryOrderChangTuKeHu" parameterType="pd" resultType="pd">
+		select 
+				t1.order_changtu_id,
+				t1.order_changtu_Time,
+				t1.changtu_departurePlace,
+				t1.changtu_destination,
+				t1.changtu_mileage,
+				t1.changtu_radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t1.information_changtu_fid,
+				t1.order_changtu_status,
+				t2.phone,
+				t2.userName,
+				t3.userName AS userNamesiji,
+				t3.phone AS phonesiji,
+				t3.carType,
+				t3.carColor,
+				t3.carNumber,
+				t1.departureTime,
+				t1.departureCity,
+				t1.arrivalCity
+			from tb_order_changtu t1 
+				LEFT JOIN  tb_user_kehu t2  on t1.user_kehu_fid = t2.user_kehu_id  
+				LEFT JOIN  tb_user_siji t3  on t1.user_siji_fid = t3.user_siji_id
+			<!-- 	LEFT JOIN  tb_information_changtu t4  on t1.information_changtu_fid = t4.information_changtu_id -->
+			where 
+				t1.order_changtu_id = #{order_changtu_id}
+	</select>
+	
+	<!-- 司机端长途订单确认已送达 -->
+	<update id="updateOrderChangTuStatus" parameterType="pd">
+		update  tb_order_changtu
+			set 
+				order_changtu_status='2' <!--已完成 -->
+			where 
+				order_changtu_id = #{order_changtu_id}
+	</update>
+	
+	<!-- 执行修改 -->
+	<update id="UpdateOrderTongcheng" parameterType="pd">
+		update  tb_order_tongcheng
+			set 
+				order_tongcheng_id = #{order_tongcheng_id},
+				orderTime = #{orderTime},
+				destination = #{destination},
+				departurePlace = #{departurePlace},
+				mileage = #{mileage},
+				radeAmount = #{radeAmount},
+				kehu_user_fid = #{kehu_user_fid},
+				user_siji_fid = #{user_siji_fid}
+			where 
+				order_tongcheng_id = #{order_tongcheng_id}
+	</update>
+	
+	<!-- 根据ID读取一条数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+			order_tongcheng_id,	
+			orderTime,	
+			destination,	
+			departurePlace,
+			mileage,
+			radeAmount,
+			kehu_user_fid,
+			user_siji_fid
+		from 
+			tb_order_tongcheng
+		where 
+			order_tongcheng_id = #{order_tongcheng_id}
+	</select>
+	
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from tb_order_tongcheng
+		where 
+			order_tongcheng_id in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 根据条件查询一条记录，判断是否存在 -->
+	<select id="getBySuigongName" parameterType="pd" resultType="pd">
+		select
+			*
+		from order_tongcheng_id 
+			where suigong_name=#{suigong_name}
+	</select>
+	
+</mapper>
+

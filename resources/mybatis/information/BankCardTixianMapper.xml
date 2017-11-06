@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BankCardTixianMapper">
+	
+	<!-- 查询列表分页  -->
+	<select id="BankCardTixianlistPage" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_tixian_id,
+				t1.serial_number,
+				t1.tixian_type,
+				t1.zhichu_amount,
+				t1.tixian_time,
+				t1.update_time,
+				t1.bank_card_fid,
+				t1.user_siji_fid,
+				t1.bank_card_status,
+				t1.bankName,
+				t1.cardNumber,
+				t1.phone,
+				t1.realName
+			from tb_bank_card_tixian t1 
+				<!-- LEFT JOIN  tb_bank_card t2  ON t1.bank_card_fid = t2.bank_card_id -->  
+				<!-- LEFT JOIN  tb_user_siji t3  ON t1.user_siji_fid = t3.user_siji_id -->
+			<where>
+			 	<if test="pd.searchName!=null and pd.searchName!=''">
+			 		t1.realName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+			 	</if>
+		 	</where>
+			order by t1.tixian_time desc, t1.update_time desc,t1.bank_card_status desc
+	</select>
+	
+	<!-- 执行删除 -->
+	<delete id="del" parameterType="pd">
+		delete from tb_bank_card_tixian where  bank_card_tixian_id = #{bank_card_tixian_id}
+	</delete>
+	
+	<!-- 后台司机端银行转账审核受理操作 -->
+	<update id="syschecked" parameterType="pd">
+		update tb_bank_card_tixian
+		set
+			bank_card_status=#{bank_card_status},
+			update_time=#{update_time}
+		where bank_card_tixian_id in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+</mapper>
+

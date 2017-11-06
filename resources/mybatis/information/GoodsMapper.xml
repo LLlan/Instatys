@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="goodsMapper">
+
+
+
+
+
+	<!--  
+		添加信息
+	-->
+	<insert id="insert" parameterType="pd">
+		INSERT INTO tb_goods(
+			goods_id,
+			goodsName,
+			goodsImg,
+			<!-- goodsDetail, -->
+			originalPrice,
+			presentPrice,
+			canhefei,
+			fabuTime,
+			goodsState,
+			goodsIntroduce,
+			goods_category_fid,
+			user_shangjia_fid
+		)VALUES(
+			#{goods_id},
+			#{goodsName},
+			#{goodsImg},
+			<!-- #{goodsDetail}, -->
+			#{originalPrice},
+			#{presentPrice},
+			#{canhefei},
+			#{fabuTime},
+			#{goodsState},
+			#{goodsIntroduce},
+			#{goods_category_fid},
+			#{user_shangjia_fid}
+		)
+	</insert>
+	<!--  
+		获取所有的信息
+	-->
+	<select id="getlistPage" parameterType="page" resultType="pd">
+		SELECT 
+			*
+		FROM tb_goods tg
+		<where>
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		tg.goodsName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		</where> 
+		ORDER BY tg.fabuTime desc
+	</select>
+	<!--  
+		获取指定商家指定分类的所有商品以及商品的月销售量
+	-->
+	<select id="getlistAll" parameterType="pd" resultType="pd">
+		SELECT
+			tg.goods_id,
+			tg.goodsName,
+			tg.goodsImg,
+			tg.presentPrice,
+			tg.originalPrice,
+			tg.goodsState,
+			IFNULL(tth.goodsNum, '0') goodsNum
+		FROM
+			tb_goods tg
+		LEFT JOIN (
+			SELECT
+				tog.goods_fid,
+				SUM(tog.goodsNum) goodsNum
+			FROM
+				tb_order_takeou tot
+			LEFT JOIN tb_order_goods tog ON tog.takeout_order_fid = tot.order_takeou_id
+			WHERE
+				tot.orderTime LIKE CONCAT(CONCAT('%', #{yearsAndmonth}),'%')
+			AND tot.orderStateShangjia = '5'
+			GROUP BY
+				tog.goods_fid
+		) tth ON tth.goods_fid = tg.goods_id
+		WHERE
+			tg.user_shangjia_fid = #{user_shangjia_fid} AND tg.goods_category_fid=#{goods_category_id}
+	</select>
+	<!--  
+		根据主键ID或Name获取对象信息
+	-->
+	<select id="getDateByIdorName" parameterType="pd" resultType="pd">
+		SELECT
+			IFNULL(tg.originalPrice,0)originalPrice,
+			IFNULL(tg.presentPrice,0)presentPrice,
+			IFNULL(tg.canhefei,0)canhefei,
+			tg.fabuTime,
+			IFNULL(tg.goods_category_fid,"")goods_category_fid,
+			tg.goodsImg,
+			IFNULL(tg.goods_id,"")goods_id,
+			IFNULL(tg.goodsState,"")goodsState,
+			IFNULL(tg.goodsName,"")goodsName,
+			IFNULL(tg.user_shangjia_fid,"")user_shangjia_fid,
+			IFNULL(tg.goodsIntroduce,"")goodsIntroduce,
+			IFNULL(t1.categoryName,"")categoryName
+		FROM
+			tb_goods tg
+		LEFT JOIN tb_goods_category t1 ON tg.goods_category_fid = t1.goods_category_id
+		WHERE 
+			<if test="tagID!=null and tagID!=''">
+				tg.goods_id=#{tagID}
+			</if>
+			<if test="goods_id!=null and goods_id!=''">
+				tg.goods_id=#{goods_id}
+			</if>
+			<if test="name!=null and name!=''">
+				tg.goodsName=#{goodsName}
+			</if>
+	</select>
+	<!--  
+		修改指定信息
+	-->
+	<update id="update" parameterType="pd">
+		update tb_goods
+		set
+			goodsName=#{goodsName},
+			goodsImg=#{goodsImg},
+			<!-- goodsDetail=#{goodsDetail}, -->
+			originalPrice=#{originalPrice},
+			presentPrice=#{presentPrice},
+			canhefei=#{canhefei},
+			fabuTime=#{fabuTime},
+			goodsIntroduce=#{goodsIntroduce},
+			goods_category_fid=#{goods_category_fid}
+		where 
+			goods_id=#{goods_id}
+	</update>
+	<!--  
+		修改指定商品的状态
+	-->
+	<update id="updatestateOne" parameterType="pd">
+		update tb_goods
+		set
+			goodsState=#{goodsState}
+		where 
+			goods_id=#{goods_id}
+	</update>
+	<!--  
+		修改指定信息
+	-->
+	<update id="updatestate" parameterType="pd">
+		update tb_goods
+		set
+			goodsState=#{goodsState}
+		where goods_id in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	
+	<!--  
+		获取图片地址路径
+	-->
+	<select id="getImgPaths" parameterType="pd" resultType="pd">
+		SELECT
+		GROUP_CONCAT(tg.goodsImg) imgPaths
+		FROM tb_goods tg
+		where tg.goods_id in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	<!--  
+		删除操作
+	-->
+	<delete id="delete" parameterType="pd">
+		delete 
+		from tb_goods
+		where goods_id in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	<!-- 
+		删除商品
+	 -->
+	<delete id="goodsdelete" parameterType="pd">
+		delete from tb_goods where goods_id =#{goods_id}
+	</delete>
+</mapper>

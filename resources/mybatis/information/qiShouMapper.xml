@@ -1,0 +1,924 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="qiShouMapper">
+
+	<!-- 保存骑手用户信息 -->
+	<insert id="saveU" parameterType="pd">
+		INSERT INTO tb_user_qishou(
+			user_qishou_id,
+			phone,
+			userName,
+			last_login_time,
+			ip,
+			myState,
+			status,
+			Amount,
+			Incometoday,
+			totalassets,
+			payPwdStatus,
+			bz
+		)VALUES(
+			#{user_qishou_id},
+			#{phone},
+			#{userName},
+			#{last_login_time},
+			#{ip},
+			#{myState},
+			#{status},
+			#{Amount},
+			#{Incometoday},
+			#{totalassets},
+			#{payPwdStatus},
+			#{bz}
+		)
+	</insert>
+	
+	<!-- 每次登录时,更新登录时间和IP -->
+	<update id="updateLoginTimeAndIp" parameterType="pd">
+		UPDATE tb_user_qishou tus
+		SET
+			tus.last_login_time=#{last_login_time},
+			tus.ip=#{ip}
+		WHERE
+			tus.phone=#{phone}
+	</update>
+	
+	<!-- 判断用户是否存在 -->
+	<select id="findByPhone" parameterType="pd" resultType="pd">
+		select * from tb_user_qishou  
+		where  
+			phone = #{phone}
+	</select>
+	
+	<!-- 查该骑手用户是否完善资料 -->
+	<select id="getCompleteData" parameterType="pd" resultType="pd">
+		SELECT
+			t1.realName,
+			t1.sex,
+			t1.area,
+			t1.identityCard,
+			t1.identityFrontImg,
+			t1.identityFrontHoldImg,
+			t1.daibutoolImg
+		FROM
+			tb_user_qishou t1
+		WHERE
+			t1.phone = #{phone}
+	</select>
+	<!-- 查该骑手用户是否完善资料 -->
+	<select id="getCompleteDataByPhone" parameterType="pd" resultType="pd">
+		SELECT
+			t1.authenticationState,
+			IFNULL(t1.realName,'')realName,
+			IFNULL(t1.sex,'')sex,
+			IFNULL(t1.area,'')area,
+			IFNULL(t1.identityCard,'')identityCard,
+			IFNULL(t1.identityFrontImg,'')identityFrontImg,
+			IFNULL(t1.identityFrontHoldImg,'')identityFrontHoldImg,
+			IFNULL(t1.daibutoolImg,'')daibutoolImg
+		FROM
+			tb_user_qishou t1
+		WHERE
+			t1.phone = #{phone}
+	</select>
+	
+	<!-- 骑手app用户完善资料 -->
+	<update id="updateCompleteQishou" parameterType="pd">
+		update tb_user_qishou set
+			realName = #{realName},
+			sex = #{sex},
+			area = #{area},
+			identityCard = #{identityCard},
+			identityFrontImg = #{identityFrontImg},
+			identityFrontHoldImg = #{identityFrontHoldImg},
+			daibutoolImg = #{daibutoolImg},
+			authenticationState = #{authenticationState},
+			submitTime = #{submitTime}
+		where 
+			user_qishou_id = #{user_qishou_id}
+	</update>
+	
+	<!-- 修改头像图片 -->
+	<update id="updateAppHeadImage" parameterType="pd">
+		update tb_user_qishou set
+			headImg = #{headImg}
+		where  user_qishou_id = #{user_qishou_id}
+	</update>
+	
+	
+	<!-- 查询判断用户名是否已被占用 -->
+	<select id="queryByUserName" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM tb_user_qishou
+		WHERE 
+			userName = #{userName}
+	</select>
+	
+	<!-- 修改用户名 -->
+	<update id="updateAppNickName" parameterType="pd">
+		update tb_user_qishou set
+			userName = #{userName}
+		where  phone = #{phone}
+	</update>
+	
+	<!-- 获取个人资料信息 -->
+	<select id="queryGeRZL" parameterType="pd" resultType="pd">
+			select 
+				t1.user_qishou_id,
+				t1.userName,
+				t1.phone,
+				t1.headImg,
+				IFNULL(t1.realName,'')realName,
+				t1.myState,
+				t1.identityCard,
+				t1.Amount,
+				t1.Incometoday,
+				t1.totalassets,
+				IFNULL(t1.payPassword,'')payPassword,
+				payPwdStatus,
+				t1.authenticationState
+			from tb_user_qishou t1 
+			where t1.phone = #{phone}
+	</select>
+	
+	<!-- 获取新任务  -->
+	<select id="queryOrderqishouLists" parameterType="page" resultType="pd">
+			SELECT
+				IFNULL(t1.order_takeou_id,'')order_takeou_id,
+				t1.orderTime,
+				IFNULL(t1.qucan_number,'')qucan_number,
+				IFNULL(t1.order_remark,'')order_remark,
+				IFNULL(t1.payMethod,'')payMethod,
+				IFNULL(t1.totalSum,0)totalSum,
+				IFNULL(t1.paySum,0)paySum,
+				IFNULL(t1.peisongfei,0)peisongfei,
+				IFNULL(t2.shopName,'')shopName,
+				IFNULL(t2.latitude,'')latitude_sj,
+				IFNULL(t2.longitude,'')longitude_sj,
+				IFNULL(t3.detailAddress,'')detailAddress,
+				IFNULL(t3.latitude,'')latitude,
+				IFNULL(t3.longitude,'')longitude,
+				IFNULL(t2.RegistrationID,'')RegistrationID
+				
+			FROM
+				tb_order_takeou t1
+			LEFT JOIN tb_user_shangjia t2 ON t1.user_shangjia_fid = t2.user_shangjia_id
+			LEFT JOIN tb_shouhuo_address t3 ON t1.user_kehu_fid = t3.user_kehu_fid
+			LEFT JOIN tb_order_goods t4 ON t1.order_takeou_id = t4.takeout_order_fid
+			<!-- LEFT JOIN tb_goods t4 ON t1.user_shangjia_fid = t4.user_shangjia_fid -->
+			WHERE
+				t1.orderStateShangjia = '2' AND orderStateQishou = '6' AND isDefault ='1'
+			GROUP BY
+				t1.order_takeou_id
+			ORDER BY
+				t1.orderTime DESC
+	</select>
+	
+	<!-- 获取待取餐  -->
+	<select id="queryOrderStateQishou" parameterType="page" resultType="pd">
+			SELECT
+				IFNULL(t1.order_takeou_id,'')order_takeou_id,
+				t1.orderTime,
+				IFNULL(t1.qucan_number,'')qucan_number,
+				IFNULL(t1.order_remark,'')order_remark,
+				IFNULL(t1.payMethod,'')payMethod,
+				IFNULL(t1.totalSum,0)totalSum,
+				IFNULL(t1.paySum,0)paySum,
+				IFNULL(t1.peisongfei,0)peisongfei,
+				IFNULL(t2.shopName,'')shopName,
+				IFNULL(t2.latitude,'')latitude_sj,
+				IFNULL(t2.longitude,'')longitude_sj,
+				IFNULL(t3.detailAddress,'')detailAddress,
+				IFNULL(t3.latitude,'')latitude,
+				IFNULL(t3.longitude,'')longitude
+			
+			FROM
+				tb_order_takeou t1
+			LEFT JOIN tb_user_shangjia t2 ON t1.user_shangjia_fid = t2.user_shangjia_id
+			LEFT JOIN tb_shouhuo_address t3 ON  t1.user_kehu_fid  = t3.user_kehu_fid
+			LEFT JOIN tb_order_goods t4 ON t1.order_takeou_id = t4.takeout_order_fid
+			<!-- LEFT JOIN tb_goods t4 ON t1.user_shangjia_fid = t4.user_shangjia_fid -->
+			WHERE t1.user_qishou_fid = #{user_qishou_fid} AND t1.orderStateQishou ='1'
+			and isDefault ='1'
+			GROUP BY t1.order_takeou_id
+			order by t1.orderTime desc
+	</select>
+	
+	<!-- 获取待送达  -->
+	<select id="queryOrderStateQishoutow" parameterType="page" resultType="pd">
+			SELECT
+				IFNULL(t1.order_takeou_id,'')order_takeou_id,
+				t1.orderTime,
+				IFNULL(t1.qucan_number,'')qucan_number,
+				IFNULL(t1.order_remark,'')order_remark,
+				IFNULL(t1.payMethod,'')payMethod,
+				IFNULL(t1.totalSum,0)totalSum,
+				IFNULL(t1.paySum,0)paySum,
+				IFNULL(t1.peisongfei,0)peisongfei,
+				IFNULL(t2.shopName,'')shopName,
+				IFNULL(t2.latitude,'')latitude_sj,
+				IFNULL(t2.longitude,'')longitude_sj,
+				IFNULL(t3.detailAddress,'')detailAddress,
+				IFNULL(t3.latitude,'')latitude,
+				IFNULL(t3.longitude,'')longitude,
+				IFNULL(t3.phone,'')phone
+			
+			FROM
+				tb_order_takeou t1
+			LEFT JOIN tb_user_shangjia t2 ON t1.user_shangjia_fid = t2.user_shangjia_id
+			LEFT JOIN tb_shouhuo_address t3 ON  t1.user_kehu_fid  = t3.user_kehu_fid
+			LEFT JOIN tb_order_goods t4 ON t1.order_takeou_id = t4.takeout_order_fid
+			WHERE t1.user_qishou_fid = #{user_qishou_fid} AND t1.orderStateQishou ='2'
+			and isDefault ='1'
+			GROUP BY t1.order_takeou_id
+			order by t1.orderTime desc
+	</select>
+	
+	<!-- 获取历史订单（已送达）  -->
+	<select id="queryLiShiOrderStateQishou" parameterType="page" resultType="pd">
+			SELECT
+				t1.order_takeou_id,
+				t1.orderTime,
+				t1.qurysdTime,
+				t1.qucan_number,
+				t1.order_remark,
+				t1.payMethod,
+				t1.totalSum,
+				t1.paySum,
+				t1.qishou_obtain,
+				t1.peisongfei,
+				t2.shopName,
+				t2.address
+			FROM
+				tb_order_takeou t1
+			LEFT JOIN tb_user_shangjia t2 ON t1.user_shangjia_fid = t2.user_shangjia_id
+			WHERE t1.user_qishou_fid = #{user_qishou_fid} AND t1.orderStateQishou ='3'
+			GROUP BY t1.order_takeou_id
+			order by t1.orderTime desc
+	</select>
+	
+	<!-- 获取历史订单（异常订单）  -->
+	<select id="queryLiShiOrderStateQishouCancel" parameterType="page" resultType="pd">
+			SELECT
+				t1.order_takeou_id,
+				<!-- t1.orderTime, -->
+				t1.qucan_number,
+				t1.order_remark,
+				t1.payMethod,
+				t1.totalSum,
+				t1.paySum,
+				t1.peisongfei,
+				t2.shopName,
+				t2.address
+			FROM
+				tb_order_takeou t1
+			LEFT JOIN tb_user_shangjia t2 ON t1.user_shangjia_fid = t2.user_shangjia_id
+			WHERE t1.user_qishou_fid = #{user_qishou_fid} AND t1.orderStateQishou ='5'
+			GROUP BY t1.order_takeou_id
+			order by t1.orderTime desc
+	</select>
+	
+	<!-- 根据ID获取一条数据 -->
+	<select id="findByOrderTakeouId" parameterType="pd" resultType="pd">
+		select 
+			order_takeou_id,	
+			orderStateKehu,	
+			orderStateShangjia,	
+			orderStateQishou,
+			totalSum,
+			paySum,
+			peisongfei,
+			fuwubili,
+			distance,
+			user_shangjia_fid
+		from 
+			tb_order_takeou
+		where 
+			order_takeou_id = #{order_takeou_id}
+	</select>
+	
+	<!-- 判断骑手端你已有正在进行中的订单  -->
+	<select id="queryOrderTakeouHaveInHand" parameterType="pd" resultType="pd">
+		SELECT 
+			(select count(*) from tb_order_takeou t1 where t1.user_qishou_fid =#{user_qishou_fid} AND t1.orderStateQishou='1')
+			+
+			(select count(*) from tb_order_takeou t1 where t1.user_qishou_fid =#{user_qishou_fid} AND t1.orderStateQishou='2') AS haveInHands
+	</select>
+	
+	<!-- 已被抢单 -->
+	<update id="updateOrderStateQishou" parameterType="pd">
+		update  tb_order_takeou
+			set 
+				user_qishou_fid = #{user_qishou_fid},
+				orderStateKehu = '3',<!-- 客户状态待发货 -->
+				orderStateShangjia = '2',<!-- 商家待取餐 3-->
+				orderStateQishou = '1'<!-- 骑手待取餐 1-->
+			where 
+				order_takeou_id = #{order_takeou_id}
+	</update>
+	
+	<!-- 确认取货 -->
+	<update id="updateOrderStateQishouConfirm" parameterType="pd">
+		update  tb_order_takeou
+			set 
+				orderStateKehu = '4',<!-- 客户待收货 -->
+				orderStateShangjia = '4',<!-- 商家进行中 -->
+				orderStateQishou = '2'<!-- 骑手进行中 -->
+			where 
+				order_takeou_id = #{order_takeou_id} AND user_qishou_fid = #{user_qishou_fid}
+	</update>
+	
+	<!-- 确认已送达 -->
+	<update id="updateOrderStateQishouSendupto" parameterType="pd">
+		update  tb_order_takeou
+			set 
+				qishou_obtain = #{qishou_obtain},
+				distance = #{distance},
+				qurysdTime = #{qurysdTime},
+				orderStateKehu = '5',<!-- 客户已完成 -->
+				orderStateShangjia = '5',<!-- 商家已完成 -->
+				orderStateQishou = '3'<!-- 骑手已完成 -->
+			where 
+				order_takeou_id = #{order_takeou_id} AND user_qishou_fid = #{user_qishou_fid}
+	</update>
+	<!-- 
+		获取商家信息（总收益、余额）
+	 -->
+	<select id="getShangJiaInforById" parameterType="pd" resultType="pd">
+		SELECT
+			tus.user_shangjia_id,
+			tus.totalassets,
+			tus.Amount
+		FROM tb_user_shangjia tus
+		WHERE
+			tus.user_shangjia_id=#{user_shangjia_id}
+	</select>
+	<!-- 
+		更新商户总收益和余额
+	 -->
+	 <update id="updateShangJiaInforById" parameterType="pd">
+	 	UPDATE tb_user_shangjia
+		SET
+			totalassets=#{totalassets},
+			Amount=#{Amount}
+		WHERE
+		user_shangjia_id=#{user_shangjia_id}
+	 </update>
+	 
+	<!-- 封装查询返回列表结果 --> 
+	<resultMap type="pd" id="goodsMap">
+			<result column="goodsName" property="goodsName" />
+			<result column="goodsNum" property="goodsNum" />
+			<result column="originalPrice" property="originalPrice" />
+	</resultMap>
+	
+	<!-- 封装查询结果 --> 
+	<resultMap type="pd"  id="userMap">
+			<result column="orderTime" property="orderTime"/>
+			<result column="qucan_number" property="qucan_number"/>
+			<result column="order_remark" property="order_remark"/>
+			<result column="payMethod" property="payMethod"/>
+			<result column="totalSum" property="totalSum"/>
+			<result column="paySum" property="paySum"/>
+			<result column="peisongfei" property="peisongfei"/>
+			<result column="address" property="address"/>
+			<result column="linkmanName" property="linkmanName"/>
+			<result column="identity" property="identity"/>
+			<result column="detailAddress" property="detailAddress"/>
+			<result column="RegistrationID" property="RegistrationID"/>
+			<result column="RegistrationType" property="RegistrationType"/>
+			<collection property="goodsList" ofType="pd" javaType="ArrayList" resultMap="goodsMap" /><!-- 两种方式的不同之处在这里，自己分析就可以知道 -->
+	</resultMap>
+	
+	<!-- 订单详情 -->
+	<select id="querytbOrderTakeou" parameterType="pd" resultMap="userMap">
+		SELECT
+			t1.order_takeou_id,
+			t1.orderTime,
+			t1.qucan_number,
+			t1.order_remark,
+			t1.payMethod,
+			t1.totalSum,
+			t1.paySum,
+			t1.peisongfei,
+			t2.address,
+			t2.RegistrationID,
+			t2.RegistrationType,
+			t3.detailAddress,
+			t3.linkmanName,
+			t3.identity,
+			t4.goodsName,
+			t4.goodsNum,
+			t4.originalPrice
+		FROM
+			tb_order_takeou t1
+		LEFT JOIN tb_user_shangjia t2 ON t1.user_shangjia_fid = t2.user_shangjia_id
+		LEFT JOIN tb_shouhuo_address t3 ON  t1.user_kehu_fid  = t3.user_kehu_fid
+		LEFT JOIN tb_order_goods t4 ON  t1.order_takeou_id = t4.takeout_order_fid
+		WHERE  t1.order_takeou_id = #{order_takeou_id} AND isDefault ='1'
+		<!-- GROUP BY t1.order_takeou_id --> 
+	</select>
+	
+	<!-- 是否开工 -->
+	<update id="isupdateStart" parameterType="pd">
+		update  tb_user_qishou
+			set 
+				myState = #{myState}
+			where 
+				user_qishou_id = #{user_qishou_id}
+	</update>
+	
+	<!-- 换绑新的手机号-->
+	<update id="updateUserphone" parameterType="pd">
+		UPDATE tb_user_qishou
+			<set>
+				<if test="phone!='' and phone!=null">
+					phone=#{phone}
+				</if>
+			</set>
+		WHERE
+			user_qishou_id=#{user_qishou_id}
+	</update>
+	
+	<!-- 获取新任务，待取货，待送达，已送达，异常订单，系统消息未读的总数  -->
+	<select id="queryCount" parameterType="pd" resultType="pd">
+		SELECT 
+			(select count(*) from tb_order_takeou t1 where t1.orderStateShangjia='2' AND t1.orderStateQishou='6') AS xinrenwu,
+			(select count(*) from tb_order_takeou t1 where t1.user_qishou_fid = #{user_qishou_fid} AND t1.orderStateQishou='1') AS daiquhuo,
+			(select count(*) from tb_order_takeou t1 where t1.user_qishou_fid = #{user_qishou_fid} AND t1.orderStateQishou='2') AS daisongda,
+			(select count(*) from tb_order_takeou t1 where t1.user_qishou_fid = #{user_qishou_fid} AND t1.orderStateQishou='3') AS yisongda,
+			(select count(*) from tb_order_takeou t1 where t1.user_qishou_fid = #{user_qishou_fid} AND t1.orderStateQishou='5') AS yiquxiao,
+			(select count(*) from tb_sys_message_qishou t1 where t1.status='1') AS xitongxiaoxi 
+	</select>
+	
+		<!-- 我的银行卡管理列表   -->
+	<select id="queryBankCardList" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_id,
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber
+			from tb_bank_card t1 
+			where
+				t1.user_fid = #{user_fid}
+			order by t1.create_time desc
+	</select>
+	
+	<!-- 银行卡解绑 -->
+	<delete id="unbundlingCardNumber" parameterType="pd">
+		delete from tb_bank_card where bank_card_id =#{bank_card_id}
+	</delete>
+	
+	<!-- 查询银行卡信息是否从复  -->
+	<select id="queryBankCardCardNumber" parameterType="pd" resultType="pd">
+			select 
+				t1.bank_card_id,
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber
+			from tb_bank_card t1 
+			where
+				t1.cardNumber = #{cardNumber}
+	</select>
+	
+	<!-- 添加银行卡信息确认 -->
+	<insert id="insertBankCard" parameterType="pd">
+		insert into tb_bank_card(
+			bank_card_id,
+			userName,
+			phone,
+			bankName,
+			cardNumber,
+			user_fid,
+			bz,
+			status,
+			create_time
+		)values(
+			#{bank_card_id},
+			#{userName},
+			#{phone},
+			#{bankName},
+			#{cardNumber},
+			#{user_fid},
+			#{bz},
+			#{status},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 今日总收入  -->
+	<select id="queryQiShouIncomeToday" parameterType="pd" resultType="pd">
+			<!-- select 
+				IFNULL(sum(t1.totalSum),0)sum,
+				count(*) AS count
+			from tb_order_takeou t1
+			WHERE  t1.user_qishou_fid = #{user_qishou_fid} AND to_days(t1.orderTime) = to_days(now()) AND  t1.orderStateQishou = '3' -->
+			SELECT
+				<!-- IFNULL(SUM(t2.sum), 0) sum, -->
+				IFNULL(t2.sum, 0) sum,
+				count(*) AS count
+			FROM
+				(
+					SELECT
+						t3.Incometoday AS sum
+					FROM
+						tb_order_takeou t1
+					LEFT JOIN tb_user_qishou t3 ON t1.user_qishou_fid = t3.user_qishou_id
+					WHERE
+						t1.user_qishou_fid = #{user_qishou_fid}
+					AND t1.orderStateQishou = 3
+					AND to_days(t1.orderTime) = to_days(now())
+				) t2
+	</select>
+	
+	<!-- 我的账户余额 、今日收入、总资产 -->
+	<select id="queryAccountbalance" parameterType="pd" resultType="pd">
+			select 
+				t1.Amount AS Amount,
+				t1.Incometoday AS Incometoday,
+				t1.totalassets AS totalassets
+			from tb_user_qishou t1
+			WHERE  t1.user_qishou_id =#{user_qishou_fid}
+	</select>
+	
+	<!-- 我的钱包 -->
+	<update id="setMywallet" parameterType="pd">
+		update tb_user_qishou 
+			set
+				Amount = #{Amount},
+				Incometoday = #{Incometoday},
+				totalassets = #{totalassets}
+		where 
+			user_qishou_id = #{user_qishou_fid}
+	</update>
+	
+	<!-- 设置支付密码 -->
+	<update id="updateZhiFuPwd" parameterType="pd">
+		update tb_user_qishou set
+		payPassword =#{payPassword},
+		payPwdStatus = 1
+		where phone = #{phone}
+	</update>
+	
+	<!-- 提取现金 -->
+	<insert id="insertWithdrawCash" parameterType="pd">
+		insert into tb_bank_card_tixian_qishou(
+			bank_card_tixian_id,
+			serial_number,
+			tixian_type,
+			zhichu_amount,
+			tixian_time,
+			bank_card_fid,
+			bankName,
+			cardNumber,
+			user_qishou_fid,
+			Amount,
+			bank_card_status
+		)values(
+			#{bank_card_tixian_id},
+			#{serial_number},
+			#{tixian_type},
+			#{zhichu_amount},
+			#{tixian_time},
+			#{bank_card_fid},
+			#{bankName},
+			#{cardNumber},
+			#{user_qishou_fid},
+			#{Amount},
+			#{bank_card_status}
+		)
+	</insert>
+	
+	<!-- 存入计算已支出，提现后的剩下的余额  -->
+	<update id="setAccountAndAssets" parameterType="pd">
+		update tb_user_qishou 
+			set
+				Amount = #{Amount},
+				totalassets = #{totalassets}
+		where 
+			user_qishou_id = #{user_qishou_fid}
+	</update>
+	
+	<!-- 我的账单明细列表   -->
+	<select id="queryBillingDetailsList" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_tixian_id,
+				t1.serial_number,	
+				t1.tixian_type,
+				t1.zhichu_amount,
+				t1.tixian_time,
+				t1.bank_card_status,
+				t1.Amount AS AccountBalance
+			from tb_bank_card_tixian_qishou t1 
+			where
+				t1.user_qishou_fid = #{user_qishou_fid}
+			order by t1.tixian_time desc
+	</select>
+	
+	<!-- 上报异常 -->
+	<insert id="insertReportingAnomalies" parameterType="pd">
+		insert into tb_reporting_anomalies_qishou(
+			reporting_anomalies_id,
+			reporting_anomalies_reason,
+			reporting_anomalies_content,
+			order_takeou_fid,
+			create_time,
+			user_qishou_fid
+		)values(
+			#{reporting_anomalies_id},
+			#{reporting_anomalies_reason},
+			#{reporting_anomalies_content},
+			#{order_takeou_fid},
+			#{create_time},
+			#{user_qishou_fid}
+		)
+	</insert>
+	
+	<!-- 设置申报异常状态 -->
+	<update id="setorderStateQishou" parameterType="pd">
+		update  tb_order_takeou
+			set 
+				orderStateQishou = '5'<!-- 骑手申报异常 -->
+			where 
+				order_takeou_id = #{order_takeou_id}
+	</update>
+	
+	<!-- 系统消息   -->
+	<select id="systemMessage" parameterType="page" resultType="pd">
+			select 
+				t1.sys_message_id,
+				t1.title,
+				t1.profiles,
+				t1.message_content,
+				t1.status,
+				t1.create_time
+			from tb_sys_message_qishou t1 
+			order by t1.status DESC ,t1.create_time DESC
+	</select>
+	
+	<!-- 判断系统消息的id是否存在 -->
+	<select id="querySysMessageQishou" parameterType="pd" resultType="pd">
+			select 
+				t1.sys_message_id,
+				t1.title,
+				t1.profiles,
+				t1.message_content,
+				t1.status,
+				t1.create_time
+			from tb_sys_message_qishou t1 
+			where
+				t1.sys_message_id = #{sys_message_id}
+	</select>
+	
+	<!-- 设置是否已读状态 -->
+	<update id="setStatus" parameterType="pd">
+		update  tb_sys_message_qishou
+			set 
+				status = '0'
+			where 
+				sys_message_id = #{sys_message_id}
+	</update>
+	<!--////////////////////////////缓存部分/////////////////////////////////////-->
+	
+	<!-- 保存缓存信息 -->
+	<insert id="saveCacheData" parameterType="pd">
+		INSERT INTO tb_cache_user_qishou(
+			cache_id,
+			backCode,
+			user_qishou_fid,
+			phone,
+			create_time
+		)VALUES(
+			#{cache_id},
+			#{backCode},
+			#{user_qishou_fid},
+			#{phone},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 根据登录成功后的返回码 BackCode去查询缓存信息 -->
+	<select id="getDataByBackCode" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM tb_cache_user_qishou
+		WHERE
+			backCode=#{backCode}
+	</select>
+	
+	<!-- 更新缓存信息 -->
+	<update id="updateCacheData" parameterType="pd">
+		UPDATE tb_cache_user_qishou
+		SET
+			phone=#{phone}
+			<if test="user_qishou_fid!='' and user_qishou_fid!=null">
+			,user_qishou_fid=#{user_qishou_fid}
+			</if>
+			<if test="cache_id!='' and cache_id!=null">
+			,backCode=#{backCode}
+			</if>
+			,create_time = #{create_time}
+		WHERE
+			<if test="cache_id!='' and cache_id!=null">
+				cache_id=#{cache_id}
+			</if>
+			<if test="user_qishou_id='' and user_qishou_id==null">
+			 and	backCode=#{backCode}
+			</if>
+	</update>
+
+	<!-- 清除缓存信息 -->
+	<delete id="deleteCacheData" parameterType="pd">
+		DELETE
+		FROM
+			tb_cache_user_qishou
+		WHERE
+			backCode=#{backCode}
+	</delete>
+
+	<!-- 骑手申请管理列表 -->
+	<select id="getQishoulistPage" parameterType="page" resultType="pd">
+		SELECT 
+			*
+		FROM tb_user_qishou t1
+		<where>
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		t1.phone LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 		or t1.realName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		</where> 
+		ORDER BY t1.submitTime desc
+	</select>
+	
+	<!-- 后台骑手审核操作 -->
+	<update id="syschecked" parameterType="pd">
+		update tb_user_qishou
+		set
+			authenticationState=#{authenticationState},
+			authenticationTime=#{authenticationTime}
+		where user_qishou_id in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	<!-- 外卖订单管理列表 -->
+	<select id="getOrderTakeoulistPage" parameterType="page" resultType="pd">
+		SELECT 
+			t1.order_takeou_id,
+			t1.orderTime,
+			t1.orderNumber,
+			t1.qurysdTime,
+			t1.qucan_number,
+			t1.order_remark,
+			t1.payMethod,
+			t1.totalSum,
+			t1.paySum,
+			t1.peisongfei,
+			t2.shopName,
+			t2.address,			
+			t3.realName,			
+			t3.phone,		
+			t4.goodsName,		
+			t4.goodsNum,		
+			t4.canhefei,		
+			t4.originalPrice,		
+			t4.presentPrice	
+		FROM tb_order_takeou t1
+		LEFT JOIN tb_user_shangjia t2 ON t1.user_shangjia_fid = t2.user_shangjia_id
+		LEFT JOIN tb_user_qishou t3 ON t1.user_qishou_fid = t3.user_qishou_id
+		LEFT JOIN tb_order_goods t4 ON t1.order_takeou_id = t4.takeout_order_fid
+		<where>
+			t1.orderStateQishou ='3'
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		t3.phone LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 		or t3.realName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		</where> 
+		<!-- GROUP BY t1.order_takeou_id -->
+		ORDER BY t1.orderTime desc
+	</select>
+	
+	<!-- 系统消息管理列表 -->
+	<select id="getSysMessagelistPage" parameterType="page" resultType="pd">
+		SELECT 
+			*
+		FROM tb_sys_message_qishou t1
+		<where>
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		t1.title LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 		or t1.message_content LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		</where> 
+		ORDER BY t1.create_time desc
+	</select>
+	
+	<!-- 执行系统消息添加 -->
+	<insert id="saveinsert" parameterType="pd">
+		INSERT INTO tb_sys_message_qishou(
+			sys_message_id,
+			title,
+			profiles,
+			message_content,
+			status,
+			create_time
+		)VALUES(
+			#{sys_message_id},
+			#{title},
+			#{profiles},
+			#{message_content},
+			#{status},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 根据ID获取一条对象信息 -->
+	<select id="getDateBysysMessageId" parameterType="pd" resultType="pd">
+		SELECT 
+			*
+		FROM tb_sys_message_qishou t1
+		<where>
+			<if test="tagID!='' and tagID!=null">
+				t1.sys_message_id=#{tagID}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 执行系统消息编辑 -->
+	<update id="SysMessageupdate" parameterType="pd">
+		update tb_sys_message_qishou
+		set
+			title=#{title},
+			profiles=#{profiles},
+			message_content=#{message_content}
+		where 
+			sys_message_id = #{sys_message_id}
+		
+	</update>
+	
+	<!-- 执行系统消息批量删除 -->
+	<delete id="sysMessageDeleteAll" parameterType="pd">
+		delete 
+		from tb_sys_message_qishou
+		where 
+			sys_message_id in
+			<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<!-- 提现明细管理列表  -->
+	<select id="BankCardTixianlistPage" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_tixian_id,
+				t1.serial_number,
+				t1.tixian_type,
+				t1.zhichu_amount,
+				t1.tixian_time,
+				t1.update_time,
+				t1.bank_card_fid,
+				t1.user_qishou_fid,
+				t1.bank_card_status,
+				t1.bankName,
+				t1.cardNumber,
+				t1.phone,
+				t1.realName
+			from tb_bank_card_tixian_qishou t1 
+				<!-- LEFT JOIN  tb_bank_card t2  ON t1.bank_card_fid = t2.bank_card_id   -->
+				<!-- LEFT JOIN  tb_user_qishou t3  ON t1.user_qishou_fid = t3.user_qishou_id -->
+			<where>
+			 	<if test="pd.searchName!=null and pd.searchName!=''">
+			 		t1.realName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+			 	</if>
+		 	</where>
+			order by t1.tixian_time desc,t1.update_time desc,t1.bank_card_status desc
+	</select>
+	
+	<!-- 后台骑手端银行转账审核受理操作 -->
+	<update id="tixianshuoli" parameterType="pd">
+		update tb_bank_card_tixian_qishou
+		set
+			bank_card_status=#{bank_card_status},
+			update_time=#{update_time}
+		where bank_card_tixian_id in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	
+	
+	<!-- 更新设备标识ID -->
+	<update id="updateQishouRegistrationID" parameterType="pd">
+		update tb_user_qishou 
+		set 
+			RegistrationID = #{RegistrationID},
+			RegistrationType = #{RegistrationType}
+		where 
+			user_qishou_id = #{user_qishou_id}
+	</update>
+</mapper>

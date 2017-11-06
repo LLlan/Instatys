@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="shouhuoAddressMapper">
+	<!-- 
+		添加信息 
+	-->
+	<insert id="insert" parameterType="pd">
+		insert into tb_shouhuo_address(
+			shouhuo_address_id,
+			linkmanName,
+			phone,
+			detailAddress,
+			identity,
+			lable,
+			isDefault,
+			user_kehu_fid
+		)values(
+			#{shouhuo_address_id},
+			#{linkmanName},
+			#{phone},
+			#{detailAddress},
+			#{identity},
+			#{lable},
+			#{isDefault},
+			#{user_kehu_fid}
+		)
+	</insert>
+	<!--  
+		获取指定用户的所有的收货地址
+	-->
+	<select id="getlistAll" parameterType="pd" resultType="pd">
+		SELECT 
+			*
+		FROM tb_shouhuo_address
+		WHERE
+		user_kehu_fid=#{user_kehu_fid}
+		ORDER BY isDefault desc
+	</select>
+	<!--  
+		根据主键ID获取对象信息
+	-->
+	<select id="getDateById" parameterType="pd" resultType="pd">
+		SELECT 
+			* 
+		FROM tb_shouhuo_address
+		WHERE 
+			shouhuo_address_id=#{shouhuo_address_id}
+	</select>
+	<!--  
+		修改指定对象的信息
+	-->
+	<update id="update" parameterType="pd">
+		UPDATE tb_shouhuo_address
+		SET
+			linkmanName=#{linkmanName},
+			phone=#{phone},
+			detailAddress=#{detailAddress},
+			identity=#{identity},
+			lable=#{lable},
+			isDefault=#{isDefault}
+		WHERE
+			shouhuo_address_id=#{shouhuo_address_id}
+	</update>
+	<!-- 
+		删除指定的信息 
+	-->
+	<delete id="delete" parameterType="pd">
+		delete from tb_shouhuo_address where shouhuo_address_id=#{shouhuo_address_id}
+	</delete>
+</mapper>

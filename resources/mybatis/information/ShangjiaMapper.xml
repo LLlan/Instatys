@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="shangjiaMapper">
+	<!--  
+		保存商家用户信息
+	-->
+	<insert id="saveShangJiaUser" parameterType="pd">
+		INSERT INTO tb_user_shangjia(
+			user_shangjia_id,
+			phone,
+			registerTime,
+			last_login_time,
+			ip,
+			status,
+			bz,
+			Amount,
+			Incometoday,
+			totalassets,
+			payPwdStatus
+		)VALUES(
+			#{user_shangjia_id},
+			#{phone},
+			#{registerTime},
+			#{last_login_time},
+			#{ip},
+			#{status},
+			#{bz},
+			#{Amount},
+			#{Incometoday},
+			#{totalassets},
+			#{payPwdStatus}
+		)
+	</insert>
+	<!-- 
+		根据手机号判断该用户是否已经存在 
+	-->
+	<select id="getDataByPhone" parameterType="pd" resultType="pd">
+		SELECT
+			user_shangjia_id,
+			authenticationState,
+			phone,
+			IFNULL(logoImg,'')logoImg,
+			IFNULL(shopName,'')shopName,
+			IFNULL(address,'')address,
+			IFNULL(tel_phone,'')tel_phone,
+			IFNULL(deliveryAmount,'')deliveryAmount,
+			menlianImg,
+			handIdentityImg,
+			businessLicenceImg,
+			licenceImg,
+			Amount,
+			Incometoday,
+			totalassets,
+			payPwdStatus,
+			IFNULL(realName,'')realName,
+			IFNULL(identityCard,'')identityCard,
+			IFNULL(payPassword,'')payPassword
+		FROM tb_user_shangjia
+		WHERE 
+			phone=#{phone}
+	</select>
+	<!-- 
+		根据商家店铺名称判断该商家店铺名称是否已经存在 
+	-->
+	<select id="getDataByShopName" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM tb_user_shangjia
+		WHERE 
+			shopName=#{shopName}
+	</select>
+	<!-- 
+		判断商家真实姓名是否重复
+	-->
+	<select id="getDataByRealName" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM tb_user_shangjia
+		WHERE 
+			realName=#{realName}
+	</select>
+	<!--  
+		判断商家身份号码是否重复
+	-->
+	<select id="getDataByIdentityCard" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM tb_user_shangjia
+		WHERE 
+			identityCard=#{identityCard}
+	</select>
+	<!--  
+		更新用户信息（更新认证信息、更新商家资料）
+	-->
+	<update id="updateUserData" parameterType="pd">
+		UPDATE tb_user_shangjia tus
+		<set>
+			<if test="tel_phone!='' and tel_phone!=null">
+				tus.tel_phone=#{tel_phone}
+			</if>
+			<if test="phone!='' and phone!=null">
+				tus.phone=#{phone}
+			</if>
+			<if test="shopName!='' and shopName!=null">
+				tus.shopName=#{shopName}
+			</if>
+			<if test="logoImg!='' and logoImg!=null">
+				tus.logoImg=#{logoImg}
+			</if>
+			<if test="address!='' and address!=null">
+				tus.address=#{address},
+			</if>
+			<if test="latitude!='' and latitude!=null">
+				tus.latitude=#{latitude},
+			</if>
+			<if test="longitude!='' and longitude!=null">
+				tus.longitude=#{longitude}
+			</if>
+			<if test="deliveryAmount!='' and deliveryAmount!=null">
+				tus.deliveryAmount=#{deliveryAmount}
+			</if>
+			<if test="realName!='' and realName!=null">
+				tus.realName=#{realName}
+			</if>
+			<if test="identityCard!='' and identityCard!=null">
+				tus.identityCard=#{identityCard}
+			</if>
+			<if test="submitTime!='' and submitTime!=null">
+				submitTime=#{submitTime},
+				authenticationState=#{authenticationState},
+				menlianImg=#{menlianImg},
+				handIdentityImg=#{handIdentityImg},
+				businessLicenceImg=#{businessLicenceImg},
+				licenceImg=#{licenceImg},
+				logoImg=#{renZhenglogoImg}
+			</if>
+		</set>
+		WHERE
+			tus.user_shangjia_id=#{user_shangjia_id}
+	</update>
+	<!--  
+		每次登录时,更新登录时间和IP
+	-->
+	<update id="updateLoginTimeAndIp" parameterType="pd">
+		UPDATE tb_user_shangjia tus
+		SET
+			tus.last_login_time=#{last_login_time},
+			tus.ip=#{ip}
+		WHERE
+			tus.phone=#{phone}
+	</update>
+	<!--  
+		添加认证时上传的店内环境图或者商品图
+	-->
+	<insert id="saveRenZhengImg" parameterType="pd">
+		INSERT INTO tb_imgpath_renzheng(
+			imgPath_diannei_id,
+			imgPath,
+			mark,
+			user_shangjia_fid
+		)VALUES(
+			#{imgPath_diannei_id},
+			#{imgPath},
+			#{mark},
+			#{user_shangjia_fid}
+		)
+	</insert>
+	<!-- 
+		获取认证时上传的店内环境图或者商品图
+	-->
+	<select id="getRenZhengImgList" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM tb_imgpath_renzheng
+		WHERE 
+			imgPath_diannei_id=#{imgPath_diannei_id}
+			AND mark=#{mark}
+	</select>
+	<!--  
+		删除认证时上传的店内环境图或者商品图
+	-->
+	<delete id="deleteRenZhengImg" parameterType="pd">
+		DELETE
+		FROM tb_imgpath_renzheng
+		WHERE 
+			user_shangjia_fid=#{user_shangjia_fid}
+			AND mark=#{mark}
+	</delete>
+	<!--////////////////////////////缓存部分/////////////////////////////////////-->
+	<!--  
+		保存缓存信息
+	-->
+	<insert id="saveCacheData" parameterType="pd">
+		INSERT INTO tb_cache_user_shangjia(
+			cache_user_shangjia_id,
+			backCode,
+			user_shangjia_fid,
+			phone
+		)VALUES(
+			#{cache_user_shangjia_id},
+			#{backCode},
+			#{user_shangjia_fid},
+			#{phone}
+		)
+	</insert>
+	<!--  
+		根据登录成功后的返回码 BackCode去查询缓存信息
+	-->
+	<select id="getDataByBackCode" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM tb_cache_user_shangjia
+		WHERE
+			backCode=#{backCode}
+	</select>
+	<!--  
+		更新缓存信息
+	-->
+	<update id="updateCacheData" parameterType="pd">
+		UPDATE tb_cache_user_shangjia
+		SET
+			phone=#{phone}
+			<if test="user_shangjia_fid!='' and user_shangjia_fid!=null">
+			,user_shangjia_fid=#{user_shangjia_fid}
+			</if>
+			<if test="cache_user_shangjia_id!='' and cache_user_shangjia_id!=null">
+			,backCode=#{backCode}
+			</if>
+		WHERE
+			<if test="cache_user_shangjia_id!='' and cache_user_shangjia_id!=null">
+				cache_user_shangjia_id=#{cache_user_shangjia_id}
+			</if>
+			<if test="cache_user_shangjia_id=='' and cache_user_shangjia_id==null">
+				backCode=#{backCode}
+			</if>
+	</update>
+	<!--  
+		清除缓存信息
+	-->
+	<delete id="deleteCacheData" parameterType="pd">
+		DELETE
+		FROM
+			tb_cache_user_shangjia
+		WHERE
+			backCode=#{backCode}
+	</delete>
+
+
+
+
+
+
+
+
+
+	
+	<!--  
+		获取所有商家的信息
+	-->
+	<select id="getlistPage" parameterType="page" resultType="pd">
+		SELECT 
+			*
+		FROM tb_user_shangjia tus
+		<where>
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		tus.phone LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 		or tus.shopName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		</where> 
+		ORDER BY tus.submitTime desc
+	</select>
+	<!--  
+		获取指定商家的认证信息
+	-->
+	<select id="getRenZhengInforById" parameterType="pd" resultType="pd">
+		SELECT
+			tus.menlianImg,
+			tus.handIdentityImg,
+			tus.businessLicenceImg,
+			tus.licenceImg,
+			tus.logoImg,
+			i1.imgPaths1,
+			i2.imgPaths2
+		FROM tb_user_shangjia tus
+		LEFT JOIN tb_imgpath_renzheng tir ON tir.user_shangjia_fid=tus.user_shangjia_id
+		LEFT JOIN (
+			SELECT 
+				tir.user_shangjia_fid,
+				tir.mark,
+				GROUP_CONCAT(tir.imgPath) imgPaths1
+			FROM tb_imgpath_renzheng tir
+			WHERE
+				tir.mark='1'
+			GROUP BY tir.user_shangjia_fid,mark
+		)i1 ON i1.user_shangjia_fid=tus.user_shangjia_id
+		LEFT JOIN (
+			SELECT 
+				tir.user_shangjia_fid,
+				tir.mark,
+				GROUP_CONCAT(tir.imgPath) imgPaths2
+			FROM tb_imgpath_renzheng tir
+			WHERE
+				tir.mark='2'
+			GROUP BY tir.user_shangjia_fid,mark
+		)i2 ON i2.user_shangjia_fid=tus.user_shangjia_id
+		WHERE
+			tus.user_shangjia_id=#{user_shangjia_id}
+		GROUP BY tus.user_shangjia_id
+	</select>
+	<!--  
+		后台审核操作
+	-->
+	<update id="syschecked" parameterType="pd">
+		update tb_user_shangjia
+		set
+			authenticationState=#{authenticationState},
+			authenticationTime=#{authenticationTime}
+		where user_shangjia_id in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	<!-- 商家系统消息   -->
+	<select id="systemMessage" parameterType="page" resultType="pd">
+			select 
+				t1.sys_message_id,
+				t1.title,
+				t1.profiles,
+				t1.message_content,
+				t1.status,
+				t1.create_time
+			from tb_sys_message_shangjia t1 
+			order by t1.status DESC ,t1.create_time DESC
+	</select>
+	
+	<!-- 判断系统消息的id是否存在 -->
+	<select id="querySysMessage" parameterType="pd" resultType="pd">
+			select 
+				t1.sys_message_id,
+				t1.title,
+				t1.profiles,
+				t1.message_content,
+				t1.status,
+				t1.create_time
+			from tb_sys_message_shangjia t1 
+			where
+				t1.sys_message_id = #{sys_message_id}
+	</select>
+	
+	<!-- 设置是否已读状态 -->
+	<update id="setStatus" parameterType="pd">
+		update  tb_sys_message_shangjia
+			set 
+				status = '0'
+			where 
+				sys_message_id = #{sys_message_id}
+	</update>
+	
+	<!-- 今日总收入  -->
+	<select id="queryIncomeToday" parameterType="pd" resultType="pd">
+			<!-- select 
+				IFNULL(sum(t1.totalSum),0)sum,
+				count(*) AS count
+			from tb_order_takeou t1
+			WHERE  t1.user_shangjia_fid = #{user_shangjia_fid} AND t1.orderStateShangjia = 5 AND to_days(t1.orderTime) = to_days(now()) -->
+			SELECT
+				IFNULL(SUM(t2.sum), 0) sum,
+				count(*) AS count
+			FROM
+			  (
+				SELECT
+					t1.paySum,
+					t1.peisongfei,
+					t1.fuwubili,
+					(t1.paySum - t1.peisongfei) * (1 - t1.fuwubili) sum
+				FROM
+					tb_order_takeou t1
+				WHERE
+					t1.user_shangjia_fid = #{user_shangjia_fid}
+				AND t1.orderStateShangjia = 5
+				AND to_days(t1.orderTime) = to_days(now())
+			  ) t2 
+	</select>
+	
+	<!-- 我的账户余额 、今日收入、总资产 -->
+	<select id="queryAccountbalance" parameterType="pd" resultType="pd">
+			select 
+				t1.Amount AS Amount,
+				t1.Incometoday AS Incometoday,
+				t1.totalassets AS totalassets
+			from tb_user_shangjia t1
+			WHERE  t1.user_shangjia_id =#{user_shangjia_fid}
+	</select>
+	
+	<!-- 我的钱包 -->
+	<update id="setMywallet" parameterType="pd">
+		update tb_user_shangjia 
+			set
+				Amount = #{Amount},
+				Incometoday = #{Incometoday},
+				totalassets = #{totalassets}
+		where 
+			user_shangjia_id = #{user_shangjia_fid}
+	</update>
+	
+	<!-- 我的银行卡管理列表   -->
+	<select id="queryBankCardList" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_id,
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber
+			from tb_bank_card t1 
+			where
+				t1.user_fid = #{user_fid}
+			order by t1.create_time desc
+	</select>
+	
+	<!-- 银行卡解绑 -->
+	<delete id="unbundlingCardNumber" parameterType="pd">
+		delete from tb_bank_card where bank_card_id =#{bank_card_id}
+	</delete>
+	
+	<!-- 查询银行卡信息是否从复  -->
+	<select id="queryBankCardCardNumber" parameterType="pd" resultType="pd">
+			select 
+				t1.bank_card_id,
+				t1.userName,
+				t1.phone,
+				t1.bankName,
+				t1.cardNumber
+			from tb_bank_card t1 
+			where
+				t1.cardNumber = #{cardNumber}
+	</select>
+	
+	<!-- 添加银行卡信息确认 -->
+	<insert id="insertBankCard" parameterType="pd">
+		insert into tb_bank_card(
+			bank_card_id,
+			userName,
+			phone,
+			bankName,
+			cardNumber,
+			user_fid,
+			bz,
+			status,
+			create_time
+		)values(
+			#{bank_card_id},
+			#{userName},
+			#{phone},
+			#{bankName},
+			#{cardNumber},
+			#{user_fid},
+			#{bz},
+			#{status},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 设置支付密码 -->
+	<update id="updateZhiFuPwd" parameterType="pd">
+		update tb_user_shangjia set
+		payPassword =#{payPassword},
+		payPwdStatus = 1
+		where phone = #{phone}
+	</update>
+	
+	<!-- 提取现金 -->
+	<insert id="insertWithdrawCash" parameterType="pd">
+		insert into tb_bank_card_tixian_shangjia(
+			bank_card_tixian_id,
+			serial_number,
+			tixian_type,
+			zhichu_amount,
+			tixian_time,
+			bank_card_fid,
+			bankName,
+			cardNumber,
+			user_shangjia_fid,
+			Amount,
+			phone,
+			realName,
+			bank_card_status
+		)values(
+			#{bank_card_tixian_id},
+			#{serial_number},
+			#{tixian_type},
+			#{zhichu_amount},
+			#{tixian_time},
+			#{bank_card_fid},
+			#{bankName},
+			#{cardNumber},
+			#{user_shangjia_fid},
+			#{Amount},
+			#{phone},
+			#{realName},
+			#{bank_card_status}
+		)
+	</insert>
+	
+	<!-- 存入计算已支出，提现后的剩下的余额  -->
+	<update id="setAccountAndAssets" parameterType="pd">
+		update tb_user_shangjia 
+			set
+				Amount = #{Amount},
+				totalassets = #{totalassets}
+		where 
+			user_shangjia_id = #{user_shangjia_fid}
+	</update>
+	
+	<!-- 我的账单明细列表   -->
+	<select id="queryBillingDetailsList" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_tixian_id,
+				t1.serial_number,	
+				t1.tixian_type,
+				t1.zhichu_amount,
+				t1.tixian_time,
+				t1.bank_card_status,
+				t1.Amount AS AccountBalance
+			from tb_bank_card_tixian_shangjia t1 
+			where
+				t1.user_shangjia_fid = #{user_shangjia_fid}
+			order by t1.tixian_time desc
+	</select>
+	
+	<!-- 系统消息管理列表 -->
+	<select id="getSysMessagelistPage" parameterType="page" resultType="pd">
+		SELECT 
+			*
+		FROM tb_sys_message_shangjia t1
+		<where>
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		t1.title LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 		or t1.message_content LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		</where> 
+		ORDER BY t1.create_time desc
+	</select>
+	
+	<!-- 执行系统消息添加 -->
+	<insert id="saveinsert" parameterType="pd">
+		INSERT INTO tb_sys_message_shangjia(
+			sys_message_id,
+			title,
+			profiles,
+			message_content,
+			status,
+			create_time
+		)VALUES(
+			#{sys_message_id},
+			#{title},
+			#{profiles},
+			#{message_content},
+			#{status},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 根据ID获取一条对象信息 -->
+	<select id="getDateBysysMessageId" parameterType="pd" resultType="pd">
+		SELECT 
+			*
+		FROM tb_sys_message_shangjia t1
+		<where>
+			<if test="tagID!='' and tagID!=null">
+				t1.sys_message_id=#{tagID}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 执行系统消息编辑 -->
+	<update id="SysMessageupdate" parameterType="pd">
+		update tb_sys_message_shangjia
+		set
+			title=#{title},
+			profiles=#{profiles},
+			message_content=#{message_content}
+		where 
+			sys_message_id = #{sys_message_id}
+		
+	</update>
+	
+	<!-- 执行系统消息批量删除 -->
+	<delete id="sysMessageDeleteAll" parameterType="pd">
+		delete 
+		from tb_sys_message_shangjia
+		where 
+			sys_message_id in
+			<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<!-- 提现明细管理列表  -->
+	<select id="BankCardTixianlistPage" parameterType="page" resultType="pd">
+			select 
+				t1.bank_card_tixian_id,
+				t1.serial_number,
+				t1.tixian_type,
+				t1.zhichu_amount,
+				t1.tixian_time,
+				t1.update_time,
+				t1.bank_card_fid,
+				t1.user_shangjia_fid,
+				t1.bank_card_status,
+				t1.bankName,
+				t1.cardNumber,
+				t1.phone,
+				t1.realName
+			from tb_bank_card_tixian_shangjia t1 
+				<!-- LEFT JOIN  tb_bank_card t2  ON t1.bank_card_fid = t2.bank_card_id   -->
+				<!-- LEFT JOIN  tb_user_shangjia t3  ON t1.user_shangjia_fid = t3.user_shangjia_id -->
+			<where>
+			 	<if test="pd.searchName!=null and pd.searchName!=''">
+			 		t1.realName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+			 	</if>
+		 	</where>
+			order by t1.tixian_time desc,t1.update_time desc,t1.bank_card_status desc
+	</select>
+	
+	<!-- 后台商家端银行人工转账审核受理操作 -->
+	<update id="tixianshuoli" parameterType="pd">
+		update tb_bank_card_tixian_shangjia
+		set
+			bank_card_status=#{bank_card_status},
+			update_time=#{update_time}
+		where bank_card_tixian_id in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	<!-- 是否营业 -->
+	<update id="isupdateStart" parameterType="pd">
+		update  tb_user_shangjia
+			set 
+				isOpen = #{isOpen}
+			where 
+				user_shangjia_id = #{user_shangjia_id}
+	</update>
+	
+	<!-- 今日数据接单与合计总数  -->
+	<select id="queryCount" parameterType="pd" resultType="pd">
+		<!-- SELECT 
+			IFNULL(sum(t1.totalSum),0)totalSum,
+			(select count(*) from tb_order_takeou t1 where t1.user_shangjia_fid = #{user_shangjia_fid} AND t1.orderStateShangjia='5' AND to_days(t1.qurysdTime) = to_days(now())) AS ordersnum
+		from tb_order_takeou t1
+		WHERE t1.user_shangjia_fid = #{user_shangjia_fid} AND t1.orderStateShangjia='5' AND to_days(t1.qurysdTime) = to_days(now()) -->
+		SELECT
+			IFNULL(SUM(t2.sum), 0) totalSum,
+			(select count(*) from tb_order_takeou t1 where t1.user_shangjia_fid = #{user_shangjia_fid} AND t1.orderStateShangjia='5' AND to_days(t1.qurysdTime) = to_days(now())) AS ordersnum
+		FROM
+		  (
+			SELECT
+				t1.paySum,
+				t1.peisongfei,
+				t1.fuwubili,
+				(t1.paySum - t1.peisongfei) * (1 - t1.fuwubili) sum
+			FROM
+				tb_order_takeou t1
+			WHERE
+				t1.user_shangjia_fid = #{user_shangjia_fid}
+			AND t1.orderStateShangjia = 5
+			AND to_days(t1.qurysdTime) = to_days(now())
+		  ) t2
+	</select>
+	
+	<!-- 更新设备标识ID -->
+	<update id="updateShangjiaRegistrationID" parameterType="pd">
+		update tb_user_shangjia 
+		set 
+			RegistrationID = #{RegistrationID},
+			RegistrationType = #{RegistrationType}
+		where 
+			user_shangjia_id = #{user_shangjia_id}
+	</update>
+	
+</mapper>

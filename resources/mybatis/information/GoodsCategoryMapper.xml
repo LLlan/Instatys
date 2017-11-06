@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="goodsCategoryMapper">
+	<!--  
+		添加信息
+	-->
+	<insert id="insert" parameterType="pd">
+		INSERT INTO tb_goods_category(
+			goods_category_id,
+			categoryName,
+			addTime,
+			user_shangjia_fid
+		)VALUES(
+			#{goods_category_id},
+			#{categoryName},
+			#{addTime},
+			#{user_shangjia_fid}
+		)
+	</insert>
+	<!--  
+		获取所有的信息
+	-->
+	<select id="getlistPage" parameterType="page" resultType="pd">
+		SELECT 
+			*
+		FROM tb_goods_category tgc
+		<where>
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		tgc.categoryName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		</where> 
+		ORDER BY tgc.addtime desc
+	</select>
+	<!--  
+		获取所有的信息
+	-->
+	<select id="getlist" parameterType="pd" resultType="pd">
+		SELECT 
+			tgc.goods_category_id,
+			tgc.categoryName,
+			tgc.addtime
+		FROM tb_goods_category tgc
+		WHERE
+			tgc.user_shangjia_fid=#{user_shangjia_fid}
+		ORDER BY tgc.addtime desc
+	</select>
+	<!--  
+		根据ID或者名称获取对象信息
+	-->
+	<select id="spflgetDateByIdorName" parameterType="pd" resultType="pd">
+		SELECT 
+			*
+		FROM tb_goods_category tgc
+		<where>
+			<if test="tagID!='' and tagID!=null">
+				tgc.goods_category_id=#{tagID}
+			</if>
+			<if test="categoryName!='' and categoryName!=null">
+				AND tgc.categoryName=#{categoryName}
+			</if>
+		</where>
+	</select>
+	<!--  
+		修改指定信息
+	-->
+	<update id="update" parameterType="pd">
+		update tb_goods_category
+		set
+			categoryName=#{categoryName},
+			addTime=#{addTime}
+		where 
+			goods_category_id=#{goods_category_id}
+	</update>
+	<!--  
+		删除操作
+	-->
+	<delete id="deleteOne" parameterType="pd">
+		delete 
+		from tb_goods_category
+		where 
+			goods_category_id = #{goods_category_id}
+	</delete>
+	<!--  
+		删除操作
+	-->
+	<delete id="delete" parameterType="pd">
+		delete 
+		from tb_goods_category
+		where 
+			goods_category_id in
+			<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	
+	
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hudongCategoryMapper">
+	<!-- 
+		添加信息 
+	-->
+	<insert id="insert" parameterType="pd">
+		insert into tb_hudong_category(
+			hudong_category_id,
+			categoryName,
+			addTime
+		)values(
+			#{hudong_category_id},
+			#{categoryName},
+			#{addTime}
+		)
+	</insert>
+	<!--  
+		获取一页的信息
+	-->
+	<select id="getlistPage" parameterType="page" resultType="pd">
+		SELECT 
+			thc.hudong_category_id,
+			thc.categoryName,
+			thc.addTime
+		FROM tb_hudong_category thc
+		where 
+			1=1
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		and thc.categoryName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		ORDER BY thc.addTime desc
+	</select>
+	<!--  
+		根据主键ID或categoryName获取对象信息
+	-->
+	<select id="getDateByIdorName" parameterType="pd" resultType="pd">
+		SELECT 
+			thc.hudong_category_id,
+			thc.categoryName
+		FROM tb_hudong_category thc
+		WHERE 
+			<if test="tagID!=null and tagID!=''">
+				thc.hudong_category_id=#{tagID}
+			</if>
+			<if test="categoryName!=null and categoryName!=''">
+				thc.categoryName=#{categoryName}
+			</if>
+	</select>
+	<!--  
+		修改指定对象的信息
+	-->
+	<update id="update" parameterType="pd">
+		UPDATE tb_hudong_category thc
+		SET
+			thc.categoryName=#{categoryName},
+			thc.addTime=#{addTime}
+		WHERE
+			thc.hudong_category_id=#{hudong_category_id}
+	</update>
+	<!-- 
+		删除指定的信息 
+	-->
+	<delete id="delete" parameterType="pd">
+		delete from tb_hudong_category where hudong_category_id=#{tagID}
+	</delete>
+	<!-- 
+		批量删除信息 
+	-->
+	<delete id="deleteAll" parameterType="String" flushCache="false">
+		delete from tb_hudong_category
+		where
+			hudong_category_id in
+			<foreach collection="array" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+</mapper>

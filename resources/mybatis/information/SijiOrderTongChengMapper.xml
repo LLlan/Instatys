@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SijiOrderTongChengMapper">
+	
+	<!-- 查询列表分页  -->
+	<select id="querySijiOrderTongChengPage" parameterType="page" resultType="pd">
+			select 
+				t1.information_tongcheng_id,
+				t1.departurePlace,
+				t1.destination,
+				t1.user_kehu_fid
+			from 
+				tb_information_tongcheng t1 
+
+			<where>
+			 	<if test="pd.information_tongcheng_id!=null and pd.information_tongcheng_id!=''">
+			 		t1.information_tongcheng_id = #{information_tongcheng_id} 
+			 	</if>
+		 	</where>							   
+	</select>
+	
+	<!-- 同城打车抢单 -->
+	<insert id="insertOrderTongCheng" parameterType="pd">
+		insert into
+		tb_order_tongcheng
+		(
+			order_tongcheng_id,
+			fuwubili,
+			orderTime,
+			destination,
+			departurePlace,
+			about,
+			about_Amount,
+			mileage,
+			radeAmount,
+			order_tongcheng_status,
+			user_kehu_fid,
+			user_siji_fid,
+			information_tongcheng_id
+		)
+		values
+		(
+			#{order_tongcheng_id},
+			#{fuwubili},
+			#{orderTime},
+			#{destination},
+			#{departurePlace},
+			#{about},
+			#{about_Amount},
+			#{mileage},
+			#{radeAmount},
+			#{order_tongcheng_status},
+			#{user_kehu_fid},
+			#{user_siji_fid},
+			#{information_tongcheng_id}
+		)
+	</insert>
+	
+	<!-- 获取司机端同城订单列表信息  -->
+	<select id="queryOrderTongChengList" parameterType="page" resultType="pd">
+			select 
+				t1.order_tongcheng_id,
+				t1.orderTime,
+				t1.departurePlace,
+				t1.destination,
+				t4.latitude_longitude_start,
+				t4.latitude_longitude_end,
+				t1.mileage,
+				t1.radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t1.information_tongcheng_id,
+				t1.order_tongcheng_status, 
+				t3.phone AS phonekehu
+				<!-- t2.phone,
+				t2.userName,
+				t3.userName AS userNamesiji,
+				t3.carType,
+				t3.carColor,
+				t3.carNumber -->
+			from tb_order_tongcheng t1 
+				<!-- LEFT JOIN  tb_user_kehu t2  on t1.user_kehu_fid = t2.user_kehu_id  -->
+				LEFT JOIN  tb_user_kehu t3  on t1.user_kehu_fid = t3.user_kehu_id 
+				LEFT JOIN  tb_information_tongcheng t4  on t1.information_tongcheng_id = t4.information_tongcheng_id 
+			where
+				t1.user_siji_fid = #{user_siji_fid} <!-- AND t1.order_tongcheng_status='1' --> 
+			order by t1.order_tongcheng_status asc,t1.orderTime DESC 
+	</select>
+	
+	<!-- 客户端端同城订单列表信息  -->
+	<select id="queryKeHuOrderTongChengList" parameterType="page" resultType="pd">
+			select 
+				t1.order_tongcheng_id,
+				t1.orderTime,
+				t1.departurePlace,
+				t1.destination,
+				t1.mileage,
+				t1.radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t1.information_tongcheng_id,
+				t1.order_tongcheng_status, 
+				<!-- t2.phone,
+				t2.userName,-->
+				t3.userName AS userNamesiji,
+				t3.carType,
+				t3.carColor,
+				t3.carNumber,
+				t4.about_Amount 
+			from tb_order_tongcheng t1 
+				<!-- LEFT JOIN  tb_user_kehu t2  on t1.user_kehu_fid = t2.user_kehu_id  -->
+				LEFT JOIN  tb_user_siji t3  on t1.user_siji_fid = t3.user_siji_id 
+				LEFT JOIN  tb_information_tongcheng t4  on t1.information_tongcheng_id = t4.information_tongcheng_id
+			where
+				t1.user_kehu_fid = #{user_kehu_id} 
+			order by t1.orderTime desc
+	</select>
+	
+	<!-- 获取司机端同城订单详情 -->
+	<select id="queryOrderTongCheng" parameterType="pd" resultType="pd">
+		select 
+				t1.order_tongcheng_id,
+				t1.orderTime,
+				t1.departurePlace,
+				t1.destination,
+				t1.about,
+				t1.about_Amount,
+				t1.mileage,
+				t1.radeAmount,
+				t1.user_kehu_fid,
+				t1.user_siji_fid,
+				t1.order_tongcheng_status,
+				t1.fuwubili,
+				t2.phone,
+				t2.userName,
+				t3.userName AS userNamesiji,
+				t3.phone AS phonesiji,
+				t3.carType,
+				t3.carColor,
+				t3.carNumber
+			from tb_order_tongcheng t1 
+				LEFT JOIN  tb_user_kehu t2  on t1.user_kehu_fid = t2.user_kehu_id  
+				LEFT JOIN  tb_user_siji t3  on t1.user_siji_fid = t3.user_siji_id
+			where 
+				t1.order_tongcheng_id = #{order_tongcheng_id}
+	</select>
+	<!-- 更新订单编号BYzjh -->
+	<update id="updateOrderTongChengOrderNumberById" parameterType="pd">
+		update  tb_order_tongcheng
+		<set>
+			orderNumber=#{orderNumber}
+		</set>
+		where 
+			order_tongcheng_id = #{order_tongcheng_id}
+	</update>
+	<!-- 根据订单号查询订单信息BYzjh-->
+	<select id="getTongChengOrderInfoByOrderNumber" parameterType="pd" resultType="pd">
+		select  
+			order_tongcheng_id,
+			radeAmount,
+			orderNumber,
+			radeAmount,
+			user_siji_fid,
+			fuwubili
+		from tb_order_tongcheng
+		where 
+			orderNumber = #{orderNumber}
+	</select>
+	<!-- 乘客支付完成BYzjh -->
+	<update id="updateTongChengOrder" parameterType="pd">
+		update  tb_order_tongcheng
+		set 
+			order_tongcheng_status=#{order_tongcheng_status},
+			payMethod=#{payMethod}
+		where 
+			orderNumber = #{orderNumber}
+	</update>
+	
+	<!--  
+		获取司机信息
+	-->
+	<select id="getSiJiInforById" parameterType="pd" resultType="pd">
+		SELECT
+			tus.user_siji_id,
+			tus.Amount,
+			tus.totalassets
+		FROM tb_user_siji tus
+		WHERE
+			tus.user_siji_id=#{user_siji_id}
+	</select>
+	<!--  
+		更新司机信息
+	-->
+	<update id="updateSiJiInforById" parameterType="pd">
+		UPDATE tb_user_siji
+		SET
+			Amount=#{Amount},
+			totalassets=#{totalassets}
+		WHERE
+			user_siji_id=#{user_siji_id}
+	</update>
+	
+	
+	
+	
+	<!-- 司机端已接到乘客 -->
+	<update id="SetOrderTongChengStatus" parameterType="pd">
+		update  tb_order_tongcheng
+		<set>
+			order_tongcheng_status='4'
+			<if test="orderNumber!='' and orderNumber!=null">
+				orderNumber=#{orderNumber}
+			</if>
+		</set>
+		where 
+			order_tongcheng_id = #{order_tongcheng_id}
+	</update>
+	<!-- 司机端同城订单确认已送达 -->
+	<update id="updateOrderTongChengStatus" parameterType="pd">
+		update  tb_order_tongcheng
+			set 
+				mileage=#{mileage},
+				radeAmount=#{radeAmount},
+				order_tongcheng_status='2'
+		where 
+				order_tongcheng_id = #{order_tongcheng_id}
+	</update>
+	<!-- 司机端同城订单和长途订单，接单总数  -->
+	<select id="queryOrderTongChengAndChangTuOrderCount" parameterType="pd" resultType="pd">
+		select 
+		<!-- (select count(*) from tb_order_changtu t1 where t1.user_siji_fid =#{user_siji_fid} AND t1.order_changtu_status='2')
+		+ -->
+		(select count(*) from tb_order_tongcheng t2 where t2.user_siji_fid =#{user_siji_fid} AND t2.order_tongcheng_status='5') AS OrderCount
+	</select>
+	
+	<!-- 判断司机端你已一条正在进行中的同城订单与长途订单  -->
+	<select id="queryOrderTongChengHaveInHand" parameterType="pd" resultType="pd">
+		SELECT 
+			(select count(*) from tb_order_tongcheng t1 where t1.user_siji_fid =#{user_siji_fid} AND t1.order_tongcheng_status='1') AS haveInHand,
+			(select count(*) from tb_order_changtu t1 where t1.user_siji_fid =#{user_siji_fid} AND t1.order_changtu_status='1') AS haveInHands
+	</select>
+	
+</mapper>
+

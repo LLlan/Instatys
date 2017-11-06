@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="H5sysMapper">
+	
+	<!-- 配送规则分页列表  -->
+	<select id="peisongfeilistPage" parameterType="page" resultType="pd">
+			select 
+				t1.peisongfei_id,
+				t1.gongli1,
+				t1.gongli2,
+				t1.gongli3,
+				t1.gongli4
+			from sys_peisongfei t1
+			order by t1.peisongfei_id desc
+	</select>
+	
+	<!-- 获取配送规则信息  -->
+	<select id="peiSongGuiZeInfo" parameterType="pd" resultType="pd">
+			select 
+				t1.peisongfei_id,
+				t1.gongli1,
+				t1.gongli2,
+				t1.gongli3,
+				t1.gongli4
+			from sys_peisongfei t1
+			order by t1.peisongfei_id desc
+	</select>
+	
+	<!-- 执行配送费规则添加 -->
+	<insert id="saveinsert" parameterType="pd">
+		INSERT INTO sys_peisongfei(
+			peisongfei_id,
+			gongli1,
+			gongli2,
+			gongli3,
+			gongli4
+		)VALUES(
+			#{peisongfei_id},
+			#{gongli1},
+			#{gongli2},
+			#{gongli3},
+			#{gongli4}
+		)
+	</insert>
+	
+	<!-- 根据ID获取一条对象信息 -->
+	<select id="getDateBypeisongfeiId" parameterType="pd" resultType="pd">
+		SELECT 
+			*
+		FROM sys_peisongfei t1
+		<where>
+			<if test="tagID!='' and tagID!=null">
+				t1.peisongfei_id=#{tagID}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 执行配送费规则编辑 -->
+	<update id="sysPeisongfeiupdate" parameterType="pd">
+		update sys_peisongfei
+		set
+			gongli1=#{gongli1},
+			gongli2=#{gongli2},
+			gongli3=#{gongli3},
+			gongli4=#{gongli4}
+		where 
+			peisongfei_id = #{peisongfei_id}
+	</update>
+	
+	<!-- 执行配送费规则删除与批量删除 -->
+	<delete id="sysPeisongfeiDeleteAll" parameterType="pd">
+		delete 
+		from sys_peisongfei
+		where 
+			peisongfei_id in
+			<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<!-- 服务费规则分页列表  -->
+	<select id="fuwufeilistPage" parameterType="page" resultType="pd">
+			select 
+				t1.fuwufei_id,
+				t1.fuwubili,
+				t1.fuwubili2
+			from sys_fuwufei t1
+	</select>
+	
+	<!-- 执行服务费规则添加 -->
+	<insert id="saveFuwufei" parameterType="pd">
+		INSERT INTO sys_fuwufei(
+			fuwufei_id,
+			fuwubili,
+			fuwubili2
+		)VALUES(
+			#{fuwufei_id},
+			#{fuwubili},
+			#{fuwubili2}
+		)
+	</insert>
+	
+	<!-- 根据ID获取一条对象信息 -->
+	<select id="getDateByfuwufeiId" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM sys_fuwufei t1
+		<where>
+			<if test="tagID!='' and tagID!=null">
+				t1.fuwufei_id=#{tagID}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 执行服务费规则规则编辑 -->
+	<update id="sysFuwufeiUpdate" parameterType="pd">
+		update sys_fuwufei
+		set
+			fuwubili=#{fuwubili},
+			fuwubili2=#{fuwubili2}
+		where 
+			fuwufei_id = #{fuwufei_id}
+	</update>
+</mapper>
+

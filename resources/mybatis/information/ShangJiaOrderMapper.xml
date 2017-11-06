@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="shangJiaOrderMapper">
+	<!--  
+		获取订单列表
+	-->
+	<select id="getOrderList" parameterType="pd" resultType="pd">
+		SELECT
+			tot.order_takeou_id,
+			tot.user_shangjia_fid,
+			tot.orderTime,
+			tot.qucan_number,
+			tot.payMethod,
+			tot.order_remark,
+			tsa.linkmanName,
+			tsa.identity,
+			tsa.phone kehuphone,
+			tuq.phone qishouPhone,
+			tsa.detailAddress,
+			GROUP_CONCAT(togg.goodsName) goodsName,
+			GROUP_CONCAT(togg.goodsNum) goodsNum,
+			GROUP_CONCAT(togg.zongpresentPrice) zhiding_shangpin_zongjia,
+			SUM(togg.zongcanhefei) canhefei,
+			tot.peisongfei,
+			SUM(togg.xianxiaoji)+tot.peisongfei xiaoji,
+			ROUND(SUM(togg.xianxiaoji)*tot.fuwubili,2) fuwufei,
+			SUM(togg.xianxiaoji)-ROUND(SUM(togg.xianxiaoji)*tot.fuwubili,2) yujishouru
+		FROM
+			tb_order_takeou tot
+		LEFT JOIN tb_shouhuo_address tsa ON tsa.shouhuo_address_id = tot.shouhuo_address_fid
+		LEFT JOIN tb_user_qishou tuq ON tuq.user_qishou_id=tot.user_qishou_fid
+		LEFT JOIN (
+			SELECT
+				tog.takeout_order_fid,
+				tog.goodsName,
+				tog.goodsNum,
+				tog.goodsNum*tog.originalPrice zongoriginalPrice,
+				tog.goodsNum*tog.presentPrice zongpresentPrice,
+				tog.goodsNum*tog.canhefei zongcanhefei,
+				tog.goodsNum*tog.originalPrice+tog.goodsNum*tog.canhefei yuanxiaoji,
+				tog.goodsNum*tog.presentPrice+tog.goodsNum*tog.canhefei xianxiaoji
+			FROM
+				tb_order_goods tog
+		) togg ON togg.takeout_order_fid=tot.order_takeou_id
+		WHERE
+			tot.user_shangjia_fid=#{user_shangjia_fid}
+			<if test="orderStateKehu!='' and orderStateKehu!=null">
+				AND tot.orderStateKehu=#{orderStateKehu} 
+			</if> 
+			<if test="orderStateQishou!='' and orderStateQishou!=null">
+				AND tot.orderStateQishou=#{orderStateQishou} 
+			</if>
+			<if test="orderStateShangjia!='' and orderStateShangjia!=null">
+				AND tot.orderStateShangjia=#{orderStateShangjia} 
+			</if>
+			<if test="nowTime!='' and nowTime!=null">
+				AND tot.orderTime LIKE CONCAT(CONCAT('%',#{nowTime}),'%')
+			</if>
+		GROUP BY tot.order_takeou_id
+		ORDER BY tot.orderTime DESC
+	</select>
+	<!--  
+		获取指定条件下的订单数量
+	-->
+	<select id="getOrderNumberByTiaoJian" parameterType="pd" resultType="pd">
+		SELECT
+			COUNT(*) number
+		FROM tb_order_takeou tot
+		WHERE
+			tot.user_shangjia_fid=#{user_shangjia_fid} 
+			AND tot.orderStateShangjia=#{orderStateShangjia}
+			<if test="nowTime!='' and nowTime!=null">
+				AND tot.orderTime LIKE CONCAT(CONCAT('%',#{nowTime}),'%')
+			</if> 
+	</select>
+	<!--  
+		更新订单状态
+	-->
+	<update id="update_order_state" parameterType="pd">
+		update tb_order_takeou
+		set
+			orderStateShangjia=#{orderStateShangjia},
+			orderStateKehu=#{orderStateKehu}
+		where 
+			order_takeou_id=#{order_takeou_id}
+	</update>
+	
+	<!-- 外卖订单管理列表 -->
+	<select id="getOrderTakeoulistPage" parameterType="page" resultType="pd">
+		SELECT 
+			t1.order_takeou_id,
+			t1.orderTime,
+			t1.orderNumber,
+			t1.qurysdTime,
+			t1.qucan_number,
+			t1.order_remark,
+			t1.payMethod,
+			t1.totalSum,
+			t1.paySum,
+			t1.peisongfei,
+			t2.shopName,
+			t2.address,			
+			t3.realName,			
+			t3.phone,		
+			t4.goodsName,		
+			t4.goodsNum,		
+			t4.canhefei,		
+			t4.originalPrice,		
+			t4.presentPrice	
+		FROM tb_order_takeou t1
+		LEFT JOIN tb_user_shangjia t2 ON t1.user_shangjia_fid = t2.user_shangjia_id
+		LEFT JOIN tb_user_qishou t3 ON t1.user_qishou_fid = t3.user_qishou_id
+		LEFT JOIN tb_order_goods t4 ON t1.order_takeou_id = t4.takeout_order_fid
+		<where>
+			t1.orderStateQishou ='3'
+			<if test="pd.searchName!=null and pd.searchName!=''">
+		 		t3.phone LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 		or t3.realName LIKE CONCAT(CONCAT('%', #{pd.searchName}),'%')
+		 	</if>
+		</where> 
+		<!-- GROUP BY t1.order_takeou_id -->
+		ORDER BY t1.orderTime desc
+	</select>
+	
+	<!-- 查询进行中与未完成的订单 -->
+	<select id="querytbOrderTakeou" parameterType="pd" resultType="pd">
+		SELECT
+			(select count(*) from tb_order_takeou t1 where t1.user_shangjia_fid = #{user_shangjia_id} AND t1.orderStateShangjia='2' AND to_days(t1.orderTime) = to_days(now())) AS yishuoli,
+			(select count(*) from tb_order_takeou t1 where t1.user_shangjia_fid = #{user_shangjia_id} AND t1.orderStateShangjia='3' AND to_days(t1.orderTime) = to_days(now())) AS daiqucan,
+			(select count(*) from tb_order_takeou t1 where t1.user_shangjia_fid = #{user_shangjia_id} AND t1.orderStateShangjia='4' AND to_days(t1.orderTime) = to_days(now())) AS jinxingzhong
+	</select>
+	
+</mapper>
